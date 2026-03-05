@@ -367,7 +367,7 @@ impl GameSession {
         match cmd {
             "help" => {
                 let msg = [
-                    "Core: help tutorial missions accept submit mode settings keyvault status events leaderboard",
+                    "Core: help tutorial missions accept submit mode gate keyvault status events leaderboard daily tier",
                     "Social: chat party mail",
                     "Economy: inventory shop auction",
                     "Scripts: scripts market | scripts run <name>",
@@ -378,6 +378,29 @@ impl GameSession {
                 ]
                 .join("\n");
                 Ok((format!("{msg}\n"), 0, false))
+            }
+            "gate" => {
+                let gate = self
+                    .app
+                    .world
+                    .netcity_gate_reason(player_id, &self.offered_fingerprints)
+                    .await?;
+                let out = if let Some(reason) = gate {
+                    [
+                        "NetCity gate: LOCKED".to_owned(),
+                        format!("Reason: {reason}"),
+                        "Unlock checklist:".to_owned(),
+                        "- keyvault register".to_owned(),
+                        "- submit keys-vault".to_owned(),
+                        "- submit one starter mission (pipes-101|finder|redirect-lab|log-hunt|dedupe-city)"
+                            .to_owned(),
+                        "- reconnect while presenting your registered SSH key".to_owned(),
+                    ]
+                    .join("\n")
+                } else {
+                    "NetCity gate: UNLOCKED\nUse: mode netcity".to_owned()
+                };
+                Ok((format!("{out}\n"), 0, false))
             }
             "leaderboard" => {
                 let requested = args
@@ -1215,6 +1238,7 @@ fn is_game_command(cmd: &str) -> bool {
             | "mail"
             | "party"
             | "mode"
+            | "gate"
             | "keyvault"
             | "settings"
             | "status"

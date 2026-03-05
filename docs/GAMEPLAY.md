@@ -13,7 +13,7 @@ Mode transitions display text + color shift banners.
 - Navigation/files: `ls`, `cd`, `pwd`, `cat`, `less`, `head`, `tail`, `touch`, `mkdir`, `rm`, `cp`, `mv`
 - Text: `echo`, `printf`, `grep`, `find`, `sort`, `uniq`, `wc`, `cut`, `tr`, bounded `sed`, bounded `awk`
 - Simulated system: `ps`, `top`, `uname`, `whoami`, `id`, `df`, `free`, `ip`, `ss`
-- Game: `help`, `tutorial`, `missions`, `accept`, `submit`, `inventory`, `shop`, `auction`, `chat`, `mail`, `party`, `mode`, `keyvault`, `settings`, `status`, `events`, `leaderboard`, `scripts`
+- Game: `help`, `tutorial`, `missions`, `accept`, `submit`, `inventory`, `shop`, `auction`, `chat`, `mail`, `party`, `mode`, `gate`, `keyvault`, `settings`, `status`, `events`, `leaderboard`, `scripts`
 
 ## Tutorial and Missions
 
@@ -69,6 +69,7 @@ Currency: `Neon Chips`.
 ## Player Status and Events
 
 - `status` shows wallet, reputation, streak, mode/tier, achievements, and NetCity gate state.
+- `gate` shows exact NetCity unlock blockers and checklist.
 - `events` shows active/upcoming world events with countdown timing.
 - `leaderboard [N]` shows top non-zeroed players by reputation and wallet.
 

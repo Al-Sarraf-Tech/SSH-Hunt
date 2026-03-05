@@ -12,6 +12,10 @@ SSH-Hunt is a publicly playable cyberpunk SSH game and terminal learning MMO.
 - Teaches practical shell habits through missions and progression.
 - Includes Training Sim, NetCity multiplayer, REDLINE timed runs, scripts, auction, and PvP.
 
+Live public connection endpoint:
+
+`ssh -p 24444 <username>@ssh-hunt.appnest.cc`
+
 ## Table of Contents
 
 - [What This Is](#what-this-is)
@@ -84,6 +88,12 @@ Connect from any SSH client:
 ssh -p 24444 <username>@<server-or-hostname>
 ```
 
+Live server:
+
+```bash
+ssh -p 24444 <username>@ssh-hunt.appnest.cc
+```
+
 Password is not required by default for gameplay login flow.
 
 ## How to Play
@@ -141,6 +151,7 @@ REDLINE auto-returns to Training when timer expires.
 
 ```text
 status
+gate
 events
 auction list
 scripts market
@@ -183,6 +194,7 @@ Core:
 - `accept <mission-code>`
 - `submit <mission-code>`
 - `mode <training|netcity|redline>`
+- `gate`
 - `settings flash <on|off>`
 - `keyvault register [ssh-public-key-line]`
 - `status`
