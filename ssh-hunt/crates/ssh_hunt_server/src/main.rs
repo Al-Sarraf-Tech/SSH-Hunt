@@ -5,6 +5,7 @@ mod config;
 
 use std::collections::{BTreeMap, HashMap, HashSet, VecDeque};
 use std::net::SocketAddr;
+use std::path::Path;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
@@ -1319,6 +1320,42 @@ fn generate_admin_keypair(passphrase: &str) -> Result<(String, String)> {
     Ok((public_line, private_blob))
 }
 
+fn load_or_generate_host_key(path: &Path) -> Result<russh::keys::PrivateKey> {
+    if let Ok(key) = russh::keys::PrivateKey::read_openssh_file(path) {
+        info!(path = %path.display(), "loaded persistent SSH host key");
+        return Ok(key);
+    }
+
+    let mut rng = OsRng;
+    let key = russh::keys::PrivateKey::random(&mut rng, russh::keys::Algorithm::Ed25519)?;
+
+    if let Some(parent) = path.parent() {
+        if let Err(err) = std::fs::create_dir_all(parent) {
+            warn!(
+                path = %path.display(),
+                error = ?err,
+                "unable to create host key directory; using ephemeral key for this run"
+            );
+            return Ok(key);
+        }
+    }
+
+    match key.write_openssh_file(path, russh::keys::ssh_key::LineEnding::LF) {
+        Ok(()) => {
+            info!(path = %path.display(), "wrote SSH host key");
+            Ok(key)
+        }
+        Err(err) => {
+            warn!(
+                path = %path.display(),
+                error = ?err,
+                "unable to persist SSH host key; using ephemeral key for this run"
+            );
+            Ok(key)
+        }
+    }
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = Args::parse();
@@ -1337,6 +1374,8 @@ async fn main() -> Result<()> {
         .unwrap_or_else(|_| "/data/secrets/admin.yaml".to_owned());
     let hidden_ops_path = std::env::var("HIDDEN_OPS_PATH")
         .unwrap_or_else(|_| "/data/secrets/hidden_ops.yaml".to_owned());
+    let host_key_path = std::env::var("SSH_HOST_KEY_PATH")
+        .unwrap_or_else(|_| "/data/secrets/ssh_host_ed25519".to_owned());
 
     let cfg = config::load_config(&config_path)?;
     let admin_secret = config::load_admin_secret(&admin_secret_path)?;
@@ -1371,14 +1410,14 @@ async fn main() -> Result<()> {
         admin_secret,
     });
 
+    let host_key = load_or_generate_host_key(Path::new(&host_key_path))
+        .with_context(|| format!("unable to prepare host key at {host_key_path}"))?;
+
     let server_cfg = russh::server::Config {
         inactivity_timeout: Some(Duration::from_secs(3600)),
         auth_rejection_time: Duration::from_millis(250),
         auth_rejection_time_initial: Some(Duration::from_millis(0)),
-        keys: vec![russh::keys::PrivateKey::random(
-            &mut OsRng,
-            russh::keys::Algorithm::Ed25519,
-        )?],
+        keys: vec![host_key],
         ..Default::default()
     };
     let server_cfg = Arc::new(server_cfg);

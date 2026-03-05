@@ -285,13 +285,17 @@ Important defaults:
 - `SSH_HUNT_PORT=24444`
 - `SSH_HUNT_LISTEN=0.0.0.0:22222`
 - `DATABASE_URL=postgres://ssh_hunt:ssh_hunt_dev@postgres:5432/ssh_hunt`
+- `HIDDEN_OPS_PATH=/data/secrets/hidden_ops.yaml`
+- `SSH_HOST_KEY_PATH=/data/secrets/ssh_host_ed25519`
 
 Runtime-only secret files (not committed):
 
 - `/docker/ssh-hunt/volumes/ssh-hunt/secrets/admin.yaml`
 - `/docker/ssh-hunt/volumes/ssh-hunt/secrets/hidden_ops.yaml`
+- `/docker/ssh-hunt/volumes/ssh-hunt/secrets/ssh_host_ed25519` (persistent SSH host key)
 
 Keep runtime secret files private (`chmod 600`).
+If `SSH_HOST_KEY_PATH` is not writable at runtime, server falls back to an ephemeral key for that process and logs a warning.
 
 ## CI/CD and Security Pipeline
 
@@ -330,6 +334,11 @@ Windows `ssh -vvvv` notes:
 - `Failed to open .../.ssh/config error:2` is non-fatal when those files do not exist.
 - `error: 10061` means TCP was actively refused at the target edge (service down or wrong port-forward destination).
 - `error: 10060` means timeout (traffic dropped/blocked on path).
+
+If you see host key warnings after server rebuild:
+
+- SSH-Hunt now persists host key by default at `/data/secrets/ssh_host_ed25519`.
+- warning should only happen on first deploy or intentional key rotation.
 
 Public hostname checklist for `ssh-hunt.appnest.cc`:
 

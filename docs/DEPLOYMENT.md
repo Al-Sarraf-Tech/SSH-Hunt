@@ -48,8 +48,10 @@ Set super-admin mapping in:
 
 - `/docker/ssh-hunt/volumes/ssh-hunt/secrets/admin.yaml`
 - `/docker/ssh-hunt/volumes/ssh-hunt/secrets/hidden_ops.yaml` (private hidden mission + optional Telegram relay)
+- `/docker/ssh-hunt/volumes/ssh-hunt/secrets/ssh_host_ed25519` (persistent SSH host key)
 
 Keep this file private and chmod 600.
+Ensure `/docker/ssh-hunt/volumes/ssh-hunt/secrets` is writable by container user `10001:10001` if you want persistent SSH host keys.
 
 ## Migrations and Seeding
 
