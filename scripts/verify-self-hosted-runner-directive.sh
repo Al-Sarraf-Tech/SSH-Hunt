@@ -46,6 +46,13 @@ for idx in 1 2 3 4; do
   fi
 done
 
+host_network_count="$(grep -En '^[[:space:]]{4}network_mode:[[:space:]]host$' "${runner_compose}" | wc -l | tr -d ' ')"
+if [[ "${host_network_count}" != "5" ]]; then
+  echo "Runner directive violation: all 5 runner services must set network_mode: host."
+  echo "Found ${host_network_count} host-network declarations."
+  exit 1
+fi
+
 if ! grep -En '^runner-up: runner-env' Makefile >/dev/null; then
   echo "Runner directive violation: Makefile runner-up target is missing."
   exit 1

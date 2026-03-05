@@ -10,6 +10,7 @@ services:
       RUNNER_WORKDIR: /tmp/runner/work
       RUNNER_EPHEMERAL: ${RUNNER_EPHEMERAL:-false}
       RUNNER_NAME: ${RUNNER_NAME:-ssh-hunt-runner-01}
+    network_mode: host
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./volumes/gh-runner:/tmp/runner
@@ -27,6 +28,7 @@ services:
       RUNNER_WORKDIR: /tmp/runner/work
       RUNNER_EPHEMERAL: true
       RUNNER_NAME: ${RUNNER_NAME_PREFIX:-ssh-hunt-runner}-ephemeral-1
+    network_mode: host
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./volumes/gh-runner-ephemeral-1:/tmp/runner
@@ -44,6 +46,7 @@ services:
       RUNNER_WORKDIR: /tmp/runner/work
       RUNNER_EPHEMERAL: true
       RUNNER_NAME: ${RUNNER_NAME_PREFIX:-ssh-hunt-runner}-ephemeral-2
+    network_mode: host
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./volumes/gh-runner-ephemeral-2:/tmp/runner
@@ -61,6 +64,7 @@ services:
       RUNNER_WORKDIR: /tmp/runner/work
       RUNNER_EPHEMERAL: true
       RUNNER_NAME: ${RUNNER_NAME_PREFIX:-ssh-hunt-runner}-ephemeral-3
+    network_mode: host
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./volumes/gh-runner-ephemeral-3:/tmp/runner
@@ -78,6 +82,7 @@ services:
       RUNNER_WORKDIR: /tmp/runner/work
       RUNNER_EPHEMERAL: true
       RUNNER_NAME: ${RUNNER_NAME_PREFIX:-ssh-hunt-runner}-ephemeral-4
+    network_mode: host
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./volumes/gh-runner-ephemeral-4:/tmp/runner

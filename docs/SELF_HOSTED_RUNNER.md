@@ -25,6 +25,7 @@ Default stack:
 
 - `1` persistent runner (`github-runner`)
 - `4` ephemeral burst runners (`github-runner-ephemeral-1..4`)
+- all runners use `network_mode: host` so GitHub Actions service-container ports (for example Postgres in CI) are reachable from runner jobs.
 
 Runner labels (all runners) default to:
 

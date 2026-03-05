@@ -318,6 +318,7 @@ Runner policy:
 - this repo can be forced to self-hosted by setting:
   `gh variable set SSH_HUNT_RUNNER_LABELS --body '["self-hosted","linux","x64","ssh-hunt"]'`,
 - self-hosted compose stack must include `1` persistent + `4` ephemeral runners,
+- self-hosted runners use host networking so CI service containers are reachable,
 - policy enforcement script: `./scripts/verify-self-hosted-runner-directive.sh` runs on every `push` in Security workflow.
 
 Self-hosted runner setup:
