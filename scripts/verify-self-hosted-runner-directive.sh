@@ -2,6 +2,7 @@
 set -euo pipefail
 
 runner_compose='docker-compose.runner.yml'
+runner_dockerfile='docker/runner/Dockerfile'
 
 all_runs_on="$(grep -RIn --include='*.yml' 'runs-on:' .github/workflows || true)"
 if [[ -z "${all_runs_on}" ]]; then
@@ -32,6 +33,11 @@ if [[ ! -f "${runner_compose}" ]]; then
   exit 1
 fi
 
+if [[ ! -f "${runner_dockerfile}" ]]; then
+  echo "Missing ${runner_dockerfile}; custom runner image requirement not met."
+  exit 1
+fi
+
 ephemeral_service_count="$(grep -En '^[[:space:]]{2}github-runner-ephemeral-[0-9]+:' "${runner_compose}" | wc -l | tr -d ' ')"
 if [[ "${ephemeral_service_count}" != "4" ]]; then
   echo "Runner directive violation: ${runner_compose} must define exactly 4 ephemeral runners."
@@ -53,12 +59,26 @@ if [[ "${host_network_count}" != "5" ]]; then
   exit 1
 fi
 
+custom_image_count="$(grep -En '^[[:space:]]{4}image:[[:space:]]ssh-hunt-gh-runner:local$' "${runner_compose}" | wc -l | tr -d ' ')"
+if [[ "${custom_image_count}" != "5" ]]; then
+  echo "Runner directive violation: all 5 services must use image ssh-hunt-gh-runner:local."
+  echo "Found ${custom_image_count} matching image declarations."
+  exit 1
+fi
+
+build_dockerfile_count="$(grep -En '^[[:space:]]{6}dockerfile:[[:space:]]docker/runner/Dockerfile$' "${runner_compose}" | wc -l | tr -d ' ')"
+if [[ "${build_dockerfile_count}" != "5" ]]; then
+  echo "Runner directive violation: all 5 services must build from docker/runner/Dockerfile."
+  echo "Found ${build_dockerfile_count} matching dockerfile declarations."
+  exit 1
+fi
+
 if ! grep -En '^runner-up: runner-env' Makefile >/dev/null; then
   echo "Runner directive violation: Makefile runner-up target is missing."
   exit 1
 fi
 
-if ! grep -En 'docker compose -f docker-compose\.runner\.yml up -d' Makefile >/dev/null; then
+if ! grep -En 'docker compose -f docker-compose\.runner\.yml up -d --build' Makefile >/dev/null; then
   echo "Runner directive violation: runner-up must bring up docker-compose.runner.yml services."
   exit 1
 fi

@@ -46,7 +46,7 @@ runner-env:
 	fi
 
 runner-up: runner-env
-	docker compose -f docker-compose.runner.yml up -d
+	docker compose -f docker-compose.runner.yml up -d --build
 
 runner-down:
 	docker compose -f docker-compose.runner.yml down

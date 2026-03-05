@@ -324,7 +324,7 @@ Runner policy:
 Self-hosted runner setup:
 
 - `cp .env.runner.example .env.runner`
-- `make runner-up` (starts persistent + 4 ephemeral runners)
+- `make runner-up` (builds `docker/runner/Dockerfile`, then starts persistent + 4 ephemeral runners)
 - `make runner-logs`
 - full guide: `docs/SELF_HOSTED_RUNNER.md`
 

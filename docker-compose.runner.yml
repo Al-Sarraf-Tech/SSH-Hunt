@@ -1,6 +1,9 @@
 services:
   github-runner:
-    image: myoung34/github-runner:ubuntu-jammy
+    build:
+      context: .
+      dockerfile: docker/runner/Dockerfile
+    image: ssh-hunt-gh-runner:local
     container_name: ssh-hunt-gh-runner
     restart: unless-stopped
     env_file:
@@ -18,7 +21,10 @@ services:
       - no-new-privileges:true
 
   github-runner-ephemeral-1:
-    image: myoung34/github-runner:ubuntu-jammy
+    build:
+      context: .
+      dockerfile: docker/runner/Dockerfile
+    image: ssh-hunt-gh-runner:local
     container_name: ssh-hunt-gh-runner-ephemeral-1
     restart: unless-stopped
     env_file:
@@ -36,7 +42,10 @@ services:
       - no-new-privileges:true
 
   github-runner-ephemeral-2:
-    image: myoung34/github-runner:ubuntu-jammy
+    build:
+      context: .
+      dockerfile: docker/runner/Dockerfile
+    image: ssh-hunt-gh-runner:local
     container_name: ssh-hunt-gh-runner-ephemeral-2
     restart: unless-stopped
     env_file:
@@ -54,7 +63,10 @@ services:
       - no-new-privileges:true
 
   github-runner-ephemeral-3:
-    image: myoung34/github-runner:ubuntu-jammy
+    build:
+      context: .
+      dockerfile: docker/runner/Dockerfile
+    image: ssh-hunt-gh-runner:local
     container_name: ssh-hunt-gh-runner-ephemeral-3
     restart: unless-stopped
     env_file:
@@ -72,7 +84,10 @@ services:
       - no-new-privileges:true
 
   github-runner-ephemeral-4:
-    image: myoung34/github-runner:ubuntu-jammy
+    build:
+      context: .
+      dockerfile: docker/runner/Dockerfile
+    image: ssh-hunt-gh-runner:local
     container_name: ssh-hunt-gh-runner-ephemeral-4
     restart: unless-stopped
     env_file:

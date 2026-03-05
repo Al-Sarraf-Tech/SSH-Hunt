@@ -23,6 +23,41 @@ jobs:
         run: |
           cargo install cargo-audit --locked
           cargo install cargo-deny --locked
+          if ! command -v osv-scanner >/dev/null 2>&1; then
+            version="2.3.3"
+            arch="$(uname -m)"
+            case "${arch}" in
+              x86_64)
+                asset="osv-scanner_linux_amd64"
+                ;;
+              aarch64|arm64)
+                asset="osv-scanner_linux_arm64"
+                ;;
+              *)
+                echo "Unsupported architecture for osv-scanner: ${arch}"
+                exit 1
+                ;;
+            esac
+            url="https://github.com/google/osv-scanner/releases/download/v${version}/${asset}"
+            if command -v curl >/dev/null 2>&1; then
+              curl -fsSL "${url}" -o /tmp/osv-scanner
+            elif command -v wget >/dev/null 2>&1; then
+              wget -q "${url}" -O /tmp/osv-scanner
+            else
+              echo "Neither curl nor wget is available for downloading osv-scanner."
+              exit 1
+            fi
+            chmod +x /tmp/osv-scanner
+            if command -v sudo >/dev/null 2>&1; then
+              sudo install -m 0755 /tmp/osv-scanner /usr/local/bin/osv-scanner
+            elif install -m 0755 /tmp/osv-scanner /usr/local/bin/osv-scanner 2>/dev/null; then
+              true
+            else
+              mkdir -p "${HOME}/.local/bin"
+              install -m 0755 /tmp/osv-scanner "${HOME}/.local/bin/osv-scanner"
+              echo "${HOME}/.local/bin" >> "${GITHUB_PATH}"
+            fi
+          fi
 
       - name: Dependency advisories
         run: cargo audit --ignore RUSTSEC-2023-0071
@@ -43,9 +78,7 @@ jobs:
           format: table
 
       - name: OSV recursive scan
-        uses: google/osv-scanner-action/osv-scanner-action@v2.3.3
-        with:
-          scan-args: --config=/github/workspace/ssh-hunt/osv-scanner.toml -r /github/workspace
+        run: osv-scanner scan source --config=ssh-hunt/osv-scanner.toml -r .
 
   dependency-update-pr:
     runs-on: ${{ fromJSON(vars.SSH_HUNT_RUNNER_LABELS != '' && vars.SSH_HUNT_RUNNER_LABELS || '["ubuntu-latest"]') }}
