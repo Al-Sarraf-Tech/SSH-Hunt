@@ -315,22 +315,22 @@ impl WorldService {
         self.state.read().await.players.get(&player_id).cloned()
     }
 
-    pub fn hidden_mission_code(&self) -> Option<&str> {
+    pub fn is_hidden_mission_code(&self, code: &str) -> bool {
         self.hidden_ops
             .secret_mission
             .as_ref()
-            .map(|cfg| cfg.code.as_str())
+            .is_some_and(|cfg| cfg.code == code)
     }
 
     pub async fn player_has_completed_hidden_mission(&self, player_id: Uuid) -> bool {
-        let Some(code) = self.hidden_mission_code() else {
+        let Some(secret) = &self.hidden_ops.secret_mission else {
             return false;
         };
         let guard = self.state.read().await;
         guard
             .players
             .get(&player_id)
-            .map(|p| p.completed_missions.contains(code))
+            .map(|p| p.completed_missions.contains(&secret.code))
             .unwrap_or(false)
     }
 

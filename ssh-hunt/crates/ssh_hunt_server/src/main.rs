@@ -431,12 +431,7 @@ impl GameSession {
                         "KEYS VAULT complete. Finish one starter mission for NetCity unlock.\n",
                     );
                 }
-                if self
-                    .app
-                    .world
-                    .hidden_mission_code()
-                    .is_some_and(|hidden| hidden == *code)
-                {
+                if self.app.world.is_hidden_mission_code(code) {
                     out.push_str("Secret relay unlocked. Use: relay <message>\n");
                 }
                 Ok((out, 0, false))
