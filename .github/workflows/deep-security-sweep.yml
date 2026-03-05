@@ -35,6 +35,7 @@ jobs:
       - name: Trivy full repo scan
         uses: aquasecurity/trivy-action@0.28.0
         with:
+          version: v0.69.3
           scan-type: fs
           scan-ref: .
           severity: CRITICAL,HIGH,MEDIUM
