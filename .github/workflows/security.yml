@@ -145,4 +145,4 @@ jobs:
       - name: OSV scanner
         uses: google/osv-scanner-action/osv-scanner-action@v2.3.3
         with:
-          scan-args: --config=ssh-hunt/osv-scanner.toml -r .
+          scan-args: --config=/github/workspace/ssh-hunt/osv-scanner.toml -r /github/workspace

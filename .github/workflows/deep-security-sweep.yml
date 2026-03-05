@@ -45,7 +45,7 @@ jobs:
       - name: OSV recursive scan
         uses: google/osv-scanner-action/osv-scanner-action@v2.3.3
         with:
-          scan-args: --config=ssh-hunt/osv-scanner.toml -r .
+          scan-args: --config=/github/workspace/ssh-hunt/osv-scanner.toml -r /github/workspace
 
   dependency-update-pr:
     runs-on: ${{ fromJSON(vars.SSH_HUNT_RUNNER_LABELS != '' && vars.SSH_HUNT_RUNNER_LABELS || '["ubuntu-latest"]') }}
