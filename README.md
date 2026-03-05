@@ -108,6 +108,8 @@ After login, run:
 
 ```text
 tutorial start
+guide
+tutorial start
 missions
 accept keys-vault
 ```
@@ -193,6 +195,7 @@ Any attempt to break out into host runtime/tools is treated as intrusion:
 Core:
 
 - `help`
+- `guide [quick|full]`
 - `tutorial start`
 - `missions`
 - `accept <mission-code>`

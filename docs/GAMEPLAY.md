@@ -13,7 +13,7 @@ Mode transitions display text + color shift banners.
 - Navigation/files: `ls`, `cd`, `pwd`, `cat`, `less`, `head`, `tail`, `touch`, `mkdir`, `rm`, `cp`, `mv`
 - Text: `echo`, `printf`, `grep`, `find`, `sort`, `uniq`, `wc`, `cut`, `tr`, bounded `sed`, bounded `awk`
 - Simulated system: `ps`, `top`, `uname`, `whoami`, `id`, `df`, `free`, `ip`, `ss`
-- Game: `help`, `tutorial`, `missions`, `accept`, `submit`, `inventory`, `shop`, `auction`, `chat`, `mail`, `party`, `mode`, `gate`, `keyvault`, `settings`, `status`, `events`, `leaderboard`, `scripts`
+- Game: `help`, `guide`, `tutorial`, `missions`, `accept`, `submit`, `inventory`, `shop`, `auction`, `chat`, `mail`, `party`, `mode`, `gate`, `keyvault`, `settings`, `status`, `events`, `leaderboard`, `scripts`
 
 ## Tutorial and Missions
 
@@ -22,6 +22,7 @@ Mode transitions display text + color shift banners.
 Run:
 
 ```text
+guide
 tutorial start
 ```
 

@@ -390,7 +390,7 @@ impl GameSession {
                     theme.accent, RESET
                 ));
                 out.push('\n');
-                out.push_str("Core      help tutorial missions accept submit mode gate keyvault status events leaderboard daily tier\n");
+                out.push_str("Core      help guide tutorial missions accept submit mode gate keyvault status events leaderboard daily tier\n");
                 out.push_str("Social    chat party mail\n");
                 out.push_str("Economy   inventory shop auction\n");
                 out.push_str("Scripts   scripts market | scripts run <name>\n");
@@ -401,7 +401,18 @@ impl GameSession {
                 out.push_str("Rules\n");
                 out.push_str("  - Hardcore: 3 deaths = ZEROED (account locked)\n");
                 out.push_str("  - Host escape/probing attempts = PERMA-ZERO + disconnect\n");
+                out.push('\n');
+                out.push_str("Need step-by-step onboarding? Run: guide\n");
                 Ok((out, 0, false))
+            }
+            "guide" => {
+                if args.is_empty() || args.first() == Some(&"quick") {
+                    return Ok((self.quickstart_guide(), 0, false));
+                }
+                if args.first() == Some(&"full") {
+                    return Ok((self.full_gameplay_guide(), 0, false));
+                }
+                Ok(("Usage: guide [quick|full]\n".to_owned(), 1, false))
             }
             "gate" => {
                 let gate = self
@@ -1052,8 +1063,64 @@ impl GameSession {
                     false,
                 ))
             }
-            _ => Ok(("Unknown game command. Run help.\n".to_owned(), 127, false)),
+            _ => Ok((
+                "Unknown game command. Run help or guide.\n".to_owned(),
+                127,
+                false,
+            )),
         }
+    }
+
+    fn quickstart_guide(&self) -> String {
+        let mut out = self.render_section_banner("FIRST SESSION PLAYBOOK");
+        out.push_str("1. tutorial start\n");
+        out.push_str("2. missions\n");
+        out.push_str("3. accept keys-vault\n");
+        out.push_str("4. keyvault register\n");
+        out.push_str("5. submit keys-vault\n");
+        out.push_str("6. accept pipes-101   (or finder|redirect-lab|log-hunt|dedupe-city)\n");
+        out.push_str("7. submit pipes-101   (or the starter mission you accepted)\n");
+        out.push_str("8. gate\n");
+        out.push_str("9. mode netcity\n");
+        out.push('\n');
+        out.push_str("Daily loop after unlock\n");
+        out.push_str(
+            "  daily -> events -> auction list -> scripts market -> pvp roster -> leaderboard\n",
+        );
+        out.push('\n');
+        out.push_str("Use `guide full` for a deeper walkthrough of progression systems.\n");
+        out
+    }
+
+    fn full_gameplay_guide(&self) -> String {
+        let mut out = self.render_section_banner("GAMEPLAY GUIDE // FULL");
+        out.push_str("Onboarding and unlock flow\n");
+        out.push_str("  - Start tutorial: tutorial start\n");
+        out.push_str("  - Inspect board: missions\n");
+        out.push_str("  - Accept required: accept keys-vault\n");
+        out.push_str("  - Register key: keyvault register\n");
+        out.push_str("  - Complete mission: submit keys-vault\n");
+        out.push_str(
+            "  - Complete one starter mission: pipes-101|finder|redirect-lab|log-hunt|dedupe-city\n",
+        );
+        out.push_str("  - Verify requirements: gate\n");
+        out.push_str("  - Enter multiplayer: mode netcity\n");
+        out.push('\n');
+        out.push_str("Progression systems\n");
+        out.push_str("  - Status and progression: status, missions, gate, events\n");
+        out.push_str("  - Economy: shop list, auction list|sell|bid|buyout\n");
+        out.push_str("  - Scripts: scripts market, scripts run <name>\n");
+        out.push_str("  - PvP: pvp roster, pvp challenge <user>, pvp attack|defend|script\n");
+        out.push_str("  - Daily value: daily, leaderboard [N]\n");
+        out.push('\n');
+        out.push_str("Difficulty and risk\n");
+        out.push_str("  - Set tier: tier noob|gud|hardcore\n");
+        out.push_str("  - Hardcore rule: 3 deaths permanently zeroes account\n");
+        out.push_str("  - REDLINE mode: mode redline    (disable flash with settings flash off)\n");
+        out.push('\n');
+        out.push_str("Security rule\n");
+        out.push_str("  - Any breakout/probing attempt triggers permanent zero + disconnect.\n");
+        out
     }
 
     fn welcome_banner(&self) -> String {
@@ -1069,6 +1136,9 @@ impl GameSession {
             theme.accent, RESET
         ));
         out.push_str("Type `help` for the full command matrix.\n");
+        out.push_str("Type `guide` for step-by-step onboarding and progression.\n");
+        out.push('\n');
+        out.push_str(&self.quickstart_guide());
         out.push_str(
             "Host breakout/probing attempts trigger permanent account zero + disconnect.\n",
         );
@@ -1538,6 +1608,7 @@ fn is_game_command(cmd: &str) -> bool {
     matches!(
         cmd,
         "help"
+            | "guide"
             | "tutorial"
             | "missions"
             | "accept"
@@ -1825,5 +1896,10 @@ mod tests {
         assert!(!terminal_supports_unicode("vt100"));
         assert!(locale_supports_unicode("en_US.UTF-8"));
         assert!(!locale_supports_unicode("C"));
+    }
+
+    #[test]
+    fn guide_is_registered_as_game_command() {
+        assert!(is_game_command("guide"));
     }
 }
