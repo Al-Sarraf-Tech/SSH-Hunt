@@ -60,7 +60,7 @@ jobs:
           cargo update -w
 
       - name: Create dependency update PR
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           commit-message: "chore(deps): weekly dependency refresh"
           branch: "automation/weekly-dependency-refresh"
