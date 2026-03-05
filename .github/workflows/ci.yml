@@ -57,7 +57,7 @@ jobs:
       - name: Install toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
-          components: rustfmt, clippy
+          components: rustfmt, clippy, llvm-tools-preview
 
       - name: Cache cargo
         uses: Swatinem/rust-cache@v2
@@ -93,7 +93,7 @@ jobs:
       - name: Coverage (tarpaulin)
         run: |
           cargo install cargo-tarpaulin --locked
-          cargo tarpaulin --workspace --all-features --timeout 120 --out Xml
+          cargo tarpaulin --engine llvm --workspace --all-features --timeout 120 --out Xml
 
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v7
