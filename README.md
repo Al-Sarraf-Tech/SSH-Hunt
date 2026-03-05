@@ -6,34 +6,59 @@
 [![Deep Sweep](https://github.com/jalsarraf0/SSH-Hunt/actions/workflows/deep-security-sweep.yml/badge.svg)](https://github.com/jalsarraf0/SSH-Hunt/actions/workflows/deep-security-sweep.yml)
 [![Docker](https://github.com/jalsarraf0/SSH-Hunt/actions/workflows/docker.yml/badge.svg)](https://github.com/jalsarraf0/SSH-Hunt/actions/workflows/docker.yml)
 
-SSH-Hunt is a publicly playable cyberpunk terminal MMO/learning game over SSH.
+SSH-Hunt is a publicly playable cyberpunk SSH game and terminal learning MMO.
 
-- 100% simulated shell and world (no host command execution).
-- Teaches real bash habits through missions and story.
-- Training Sim (green) and NetCity MMO (purple neon) with REDLINE timed runs.
+- Fully simulated shell and world, implemented in Rust.
+- Teaches practical shell habits through missions and progression.
+- Includes Training Sim, NetCity multiplayer, REDLINE timed runs, scripts, auction, and PvP.
 
-## Security Model
+## Table of Contents
 
-SSH-Hunt does **not** execute real OS shell commands.
-All command behavior is implemented in Rust against:
+- [What This Is](#what-this-is)
+- [Security Guarantees](#security-guarantees)
+- [Quick Start](#quick-start)
+- [Connect and First Login](#connect-and-first-login)
+- [How to Play](#how-to-play)
+- [Command Reference](#command-reference)
+- [Cloudflare Tunnel Target (Exact)](#cloudflare-tunnel-target-exact)
+- [Deployment and Ops](#deployment-and-ops)
+- [Configuration and Secrets](#configuration-and-secrets)
+- [CI/CD and Security Pipeline](#cicd-and-security-pipeline)
+- [Troubleshooting](#troubleshooting)
+- [Contributing](#contributing)
+- [License](#license)
+
+## What This Is
+
+SSH-Hunt is designed for hostile internet exposure while keeping gameplay isolated from the host OS.
+Players connect with a normal SSH client and interact with a simulated terminal, missions, economy, and multiplayer systems.
+
+Identity shown in-game is always:
+
+`<ssh_username>@<remote_ip>`
+
+## Security Guarantees
+
+SSH-Hunt does **not** execute real host shell commands.
+Gameplay command behavior is implemented against:
 
 - virtual filesystem (VFS),
-- simulated world state,
-- player economy/mission systems,
+- simulated world state and mission engine,
+- sandboxed scripting engine,
 - PostgreSQL persistence.
 
-Hard blocks:
+Hard defensive guarantees:
 
-- no `std::process::Command` in game server code,
-- no real network scanning/probing,
-- no host filesystem access except `/data` and Postgres connectivity.
+- no `std::process::Command` or `tokio::process::Command` in game server paths,
+- no host filesystem gameplay access outside mounted runtime data,
+- no host service control or breakout command path,
 - breakout/probing attempts trigger immediate permanent zero + disconnect.
 
-## Quickstart
+## Quick Start
 
-1. Install Docker + Docker Compose.
-2. Clone into `/docker/ssh-hunt`.
-3. Initialize runtime directories and local env.
+1. Install Docker and Docker Compose.
+2. Clone to `/docker/ssh-hunt` (or adjust paths below to your location).
+3. Initialize runtime files and start services:
 
 ```bash
 cd /docker/ssh-hunt
@@ -42,36 +67,30 @@ cp .env.example .env
 make up
 ```
 
-4. Connect with any SSH client:
+4. Verify:
 
 ```bash
-ssh -p 24444 snake@your.domain
+make ps
+make logs
 ```
 
-Display identity is always `<ssh_username>@<remote_ip>`.
+Default published SSH port is `24444` on the host.
 
-## How To Expose Safely
+## Connect and First Login
 
-Only one TCP port is published (default `24444`).
-
-Fedora firewalld example:
+Connect from any SSH client:
 
 ```bash
-sudo firewall-cmd --permanent --add-port=24444/tcp
-sudo firewall-cmd --reload
+ssh -p 24444 <username>@<server-or-hostname>
 ```
 
-Recommended host protections:
+Password is not required by default for gameplay login flow.
 
-- CrowdSec or Fail2ban for SSH flood/bruteforce pressure,
-- reverse-path filtering and basic DDoS mitigations,
-- keep host patched,
-- monitor logs and rate-limit alerts.
+## How to Play
 
-## How To Play
+### 1) Start Tutorial and Mission Flow
 
-1. Login via SSH (no password required).
-2. Start onboarding:
+After login, run:
 
 ```text
 tutorial start
@@ -79,31 +98,53 @@ missions
 accept keys-vault
 ```
 
-3. Complete **KEYS VAULT** mission:
+### 2) Complete KEYS VAULT (Required)
+
+Generate a client key locally:
 
 ```bash
 ssh-keygen -t ed25519 -a 64 -f ~/.ssh/ssh-hunt_ed25519
 ```
 
-Then paste your public key line in-game via `keyvault register`.
+Then in-game:
 
-4. Complete one additional starter mission.
-5. Unlock NetCity:
+```text
+keyvault register
+```
+
+Paste your public key line when prompted.
+
+### 3) Unlock NetCity
+
+NetCity unlock requirements:
+
+- complete `keys-vault`,
+- complete at least one starter mission (`pipes-101`, `finder`, `redirect-lab`, `log-hunt`, `dedupe-city`),
+- log in presenting your registered key.
+
+Then switch:
 
 ```text
 mode netcity
 ```
 
-6. REDLINE mode:
+### 4) REDLINE Timed Mode
 
 ```text
 mode redline
 settings flash off
 ```
 
-7. PvP, rankings, and difficulty tiers:
+REDLINE auto-returns to Training when timer expires.
+
+### 5) Economy, Scripts, PvP, Rankings
 
 ```text
+status
+events
+auction list
+scripts market
+scripts run token-hunt
 leaderboard
 tier noob|gud|hardcore
 pvp roster
@@ -113,25 +154,92 @@ pvp defend
 pvp script <script_name>
 ```
 
-`Hardcore` players are zeroed (locked) after 3 deaths.
+`Hardcore` players are permanently zeroed after 3 deaths.
 
-8. Automation and world feeds:
+### 6) Social Commands
 
 ```text
-status
-events
-auction list
-scripts market
-scripts run token-hunt
+chat global <message>
+chat sector <message>
+chat party <message>
+mail inbox
+party invite <username>
 ```
 
-Any attempt to escape into host runtime/tools results in immediate permanent ban and disconnect.
+### 7) Defense Policy (Player-Facing)
 
-## Ops Commands
+Any attempt to break out into host runtime/tools is treated as intrusion:
+
+- account permanently zeroed,
+- session disconnected immediately.
+
+## Command Reference
+
+Core:
+
+- `help`
+- `tutorial start`
+- `missions`
+- `accept <mission-code>`
+- `submit <mission-code>`
+- `mode <training|netcity|redline>`
+- `settings flash <on|off>`
+- `keyvault register [ssh-public-key-line]`
+- `status`
+- `events`
+- `leaderboard [N]`
+- `daily`
+- `tier <noob|gud|hardcore>`
+
+Economy:
+
+- `inventory`
+- `shop list`
+- `shop buy <sku>`
+- `auction list`
+- `auction sell <sku> <qty> <start_price> [buyout]`
+- `auction bid <listing_id> <amount>`
+- `auction buyout <listing_id>`
+
+PvP:
+
+- `pvp roster`
+- `pvp challenge <username>`
+- `pvp attack`
+- `pvp defend`
+- `pvp script <script_name>`
+
+Scripts:
+
+- `scripts market`
+- `scripts run <name>`
+
+## Cloudflare Tunnel Target (Exact)
+
+For the current Docker setup in this repo, point the tunnel origin to:
+
+`ssh://localhost:24444`
+
+Why:
+
+- container listens on `22222`,
+- compose publishes `${SSH_HUNT_PORT:-24444}:22222`,
+- so host-side tunnel should target host port `24444`.
+
+If you run `cloudflared` inside the same Docker network as `ssh-hunt`, target:
+
+`ssh://ssh-hunt:22222`
+
+## Deployment and Ops
+
+Primary operator commands:
 
 ```bash
 make up
+make down
+make ps
 make logs
+make restart
 make db-migrate
 make db-seed
 make test
@@ -139,27 +247,71 @@ make backup
 make restore
 ```
 
-Private hidden mission and Telegram relay settings are runtime-only under
-`/docker/ssh-hunt/volumes/ssh-hunt/secrets/hidden_ops.yaml` and are never committed.
+Fedora firewalld example:
 
-## CI/CD and Security Evidence
+```bash
+sudo firewall-cmd --permanent --add-port=24444/tcp
+sudo firewall-cmd --reload
+```
+
+See full guide: `docs/DEPLOYMENT.md`
+
+## Configuration and Secrets
+
+Environment template: `.env.example`
+
+Important defaults:
+
+- `SSH_HUNT_PORT=24444`
+- `SSH_HUNT_LISTEN=0.0.0.0:22222`
+- `DATABASE_URL=postgres://ssh_hunt:ssh_hunt_dev@postgres:5432/ssh_hunt`
+
+Runtime-only secret files (not committed):
+
+- `/docker/ssh-hunt/volumes/ssh-hunt/secrets/admin.yaml`
+- `/docker/ssh-hunt/volumes/ssh-hunt/secrets/hidden_ops.yaml`
+
+Keep runtime secret files private (`chmod 600`).
+
+## CI/CD and Security Pipeline
 
 Pipelines include:
 
-- full regression tests (unit + integration + SSH flow tests),
-- sqlx migration checks,
-- cargo audit / cargo deny / dependency review,
-- secret scanning,
-- CodeQL static analysis,
-- container and dependency vulnerability scanning,
-- signed GHCR images, SBOM, and provenance attestations,
-- weekly deep security sweep + automated dependency update PRs.
+- workspace build checks and formatting,
+- clippy with warnings denied,
+- full unit/integration/regression test suite,
+- SQL migration checks,
+- `cargo audit` and `cargo deny`,
+- secret scanning (`gitleaks`),
+- static analysis (`CodeQL`),
+- vulnerability scans (`trivy`, `osv-scanner`),
+- Docker build/push, signed image workflow, SBOM/provenance.
+
+## Troubleshooting
+
+Service not reachable:
+
+- confirm `make ps` shows healthy containers,
+- verify host port with `ss -ltnp | rg 24444`,
+- check game logs with `make logs`.
+
+NetCity still locked:
+
+- verify `keys-vault` is completed,
+- complete one starter mission,
+- reconnect with the same registered key loaded in SSH client.
+
+Database issues:
+
+- run `make db-migrate`,
+- run `make db-seed`,
+- inspect postgres logs via `docker compose logs postgres`.
 
 ## Contributing
 
 - Read `docs/GAMEPLAY.md`, `docs/SECURITY.md`, and `docs/DEPLOYMENT.md`.
-- Follow the Code of Conduct.
-- Run `make test` before submitting a PR.
+- Follow `CODE_OF_CONDUCT.md`.
+- Run `make test` before opening a PR.
 
 ## License
 
