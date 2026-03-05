@@ -8,8 +8,78 @@ services:
     environment:
       RUNNER_SCOPE: repo
       RUNNER_WORKDIR: /tmp/runner/work
+      RUNNER_EPHEMERAL: ${RUNNER_EPHEMERAL:-false}
+      RUNNER_NAME: ${RUNNER_NAME:-ssh-hunt-runner-01}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./volumes/gh-runner:/tmp/runner
+    security_opt:
+      - no-new-privileges:true
+
+  github-runner-ephemeral-1:
+    image: myoung34/github-runner:ubuntu-jammy
+    container_name: ssh-hunt-gh-runner-ephemeral-1
+    restart: unless-stopped
+    env_file:
+      - .env.runner
+    environment:
+      RUNNER_SCOPE: repo
+      RUNNER_WORKDIR: /tmp/runner/work
+      RUNNER_EPHEMERAL: true
+      RUNNER_NAME: ${RUNNER_NAME_PREFIX:-ssh-hunt-runner}-ephemeral-1
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./volumes/gh-runner-ephemeral-1:/tmp/runner
+    security_opt:
+      - no-new-privileges:true
+
+  github-runner-ephemeral-2:
+    image: myoung34/github-runner:ubuntu-jammy
+    container_name: ssh-hunt-gh-runner-ephemeral-2
+    restart: unless-stopped
+    env_file:
+      - .env.runner
+    environment:
+      RUNNER_SCOPE: repo
+      RUNNER_WORKDIR: /tmp/runner/work
+      RUNNER_EPHEMERAL: true
+      RUNNER_NAME: ${RUNNER_NAME_PREFIX:-ssh-hunt-runner}-ephemeral-2
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./volumes/gh-runner-ephemeral-2:/tmp/runner
+    security_opt:
+      - no-new-privileges:true
+
+  github-runner-ephemeral-3:
+    image: myoung34/github-runner:ubuntu-jammy
+    container_name: ssh-hunt-gh-runner-ephemeral-3
+    restart: unless-stopped
+    env_file:
+      - .env.runner
+    environment:
+      RUNNER_SCOPE: repo
+      RUNNER_WORKDIR: /tmp/runner/work
+      RUNNER_EPHEMERAL: true
+      RUNNER_NAME: ${RUNNER_NAME_PREFIX:-ssh-hunt-runner}-ephemeral-3
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./volumes/gh-runner-ephemeral-3:/tmp/runner
+    security_opt:
+      - no-new-privileges:true
+
+  github-runner-ephemeral-4:
+    image: myoung34/github-runner:ubuntu-jammy
+    container_name: ssh-hunt-gh-runner-ephemeral-4
+    restart: unless-stopped
+    env_file:
+      - .env.runner
+    environment:
+      RUNNER_SCOPE: repo
+      RUNNER_WORKDIR: /tmp/runner/work
+      RUNNER_EPHEMERAL: true
+      RUNNER_NAME: ${RUNNER_NAME_PREFIX:-ssh-hunt-runner}-ephemeral-4
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./volumes/gh-runner-ephemeral-4:/tmp/runner
     security_opt:
       - no-new-privileges:true

@@ -317,12 +317,13 @@ Runner policy:
 - default fallback is GitHub-hosted `["ubuntu-latest"]` for forks/clones,
 - this repo can be forced to self-hosted by setting:
   `gh variable set SSH_HUNT_RUNNER_LABELS --body '["self-hosted","linux","x64","ssh-hunt"]'`,
-- policy enforcement script: `./scripts/verify-self-hosted-runner-directive.sh`.
+- self-hosted compose stack must include `1` persistent + `4` ephemeral runners,
+- policy enforcement script: `./scripts/verify-self-hosted-runner-directive.sh` runs on every `push` in Security workflow.
 
 Self-hosted runner setup:
 
 - `cp .env.runner.example .env.runner`
-- `make runner-up`
+- `make runner-up` (starts persistent + 4 ephemeral runners)
 - `make runner-logs`
 - full guide: `docs/SELF_HOSTED_RUNNER.md`
 

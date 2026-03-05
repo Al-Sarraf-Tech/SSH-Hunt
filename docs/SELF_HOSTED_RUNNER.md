@@ -11,9 +11,9 @@ cp .env.runner.example .env.runner
 Set:
 
 - `ACCESS_TOKEN`: Personal Access Token with `repo` and `workflow` scopes.
-- Optional: `RUNNER_NAME`, `LABELS`, `RUNNER_EPHEMERAL`.
+- Optional: `RUNNER_NAME`, `RUNNER_NAME_PREFIX`, `LABELS`, `RUNNER_EPHEMERAL`.
 
-## 2) Start Runner Container
+## 2) Start Runner Containers
 
 ```bash
 make runner-up
@@ -21,7 +21,12 @@ make runner-ps
 make runner-logs
 ```
 
-Runner labels default to:
+Default stack:
+
+- `1` persistent runner (`github-runner`)
+- `4` ephemeral burst runners (`github-runner-ephemeral-1..4`)
+
+Runner labels (all runners) default to:
 
 - `self-hosted`
 - `linux`
@@ -57,6 +62,7 @@ Runner selection policy is checked by:
 ```
 
 Security workflow runs this check so policy drift is caught automatically.
+It also enforces that `docker-compose.runner.yml` keeps all four ephemeral runner services.
 
 ## Security Notes
 
