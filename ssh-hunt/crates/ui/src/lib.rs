@@ -41,7 +41,16 @@ impl Theme {
     }
 }
 
-pub fn mode_banner(mode: Mode, flash_enabled: bool) -> String {
+fn clipped(text: &str, width: usize) -> String {
+    text.chars().take(width).collect::<String>()
+}
+
+pub fn mode_banner_adaptive(
+    mode: Mode,
+    flash_enabled: bool,
+    columns: usize,
+    unicode_frames: bool,
+) -> String {
     let theme = Theme::for_mode(mode.clone());
     let header = match mode {
         Mode::Training => "SOLO TRAINING SIM",
@@ -55,10 +64,32 @@ pub fn mode_banner(mode: Mode, flash_enabled: bool) -> String {
         theme.primary
     };
 
+    if columns < 30 {
+        let compact = clipped(header, columns.saturating_sub(6).max(8));
+        return format!("{prefix}[ {compact} ]{RESET}");
+    }
+
+    let inner_width = columns.saturating_sub(4).clamp(20, 52);
+    let title = clipped(header, inner_width);
+    if unicode_frames {
+        return format!(
+            "{prefix}╔{}╗\n║ {:<inner_width$} ║\n╚{}╝\n{RESET}",
+            "═".repeat(inner_width + 2),
+            title,
+            "═".repeat(inner_width + 2),
+        );
+    }
+
     format!(
-        "{prefix}╔══════════════════════════════════════╗\n║ {:<36} ║\n╚══════════════════════════════════════╝\n{RESET}",
-        header
+        "{prefix}+{}+\n| {:<inner_width$} |\n+{}+\n{RESET}",
+        "-".repeat(inner_width + 2),
+        title,
+        "-".repeat(inner_width + 2),
     )
+}
+
+pub fn mode_banner(mode: Mode, flash_enabled: bool) -> String {
+    mode_banner_adaptive(mode, flash_enabled, 80, true)
 }
 
 pub fn mode_switch_banner(from: Mode, to: Mode) -> String {
@@ -75,13 +106,41 @@ pub fn lore_message(mode: Mode) -> &'static str {
     }
 }
 
-pub fn section_banner(mode: Mode, title: &str) -> String {
+pub fn section_banner_adaptive(
+    mode: Mode,
+    title: &str,
+    columns: usize,
+    unicode_frames: bool,
+) -> String {
     let theme = Theme::for_mode(mode);
+    if columns < 30 {
+        let compact = clipped(title, columns.saturating_sub(6).max(8));
+        return format!("{}[ {} ]{}\n", theme.primary, compact, RESET);
+    }
+
+    let inner_width = columns.saturating_sub(4).clamp(24, 64);
+    let title = clipped(title, inner_width);
+    if unicode_frames {
+        return format!(
+            "{primary}┏{}┓\n┃ {:<inner_width$} ┃\n┗{}┛{RESET}\n",
+            "━".repeat(inner_width + 2),
+            title,
+            "━".repeat(inner_width + 2),
+            primary = theme.primary,
+        );
+    }
+
     format!(
-        "{primary}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n┃ {title:<52} ┃\n┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛{RESET}\n",
+        "{primary}+{}+\n| {:<inner_width$} |\n+{}+{RESET}\n",
+        "-".repeat(inner_width + 2),
+        title,
+        "-".repeat(inner_width + 2),
         primary = theme.primary,
-        title = title
     )
+}
+
+pub fn section_banner(mode: Mode, title: &str) -> String {
+    section_banner_adaptive(mode, title, 80, true)
 }
 
 pub fn key_value_line(mode: Mode, key: &str, value: &str) -> String {
@@ -136,6 +195,19 @@ mod tests {
         let rendered = section_banner(Mode::NetCity, "COMMAND MATRIX");
         assert!(rendered.contains("COMMAND MATRIX"));
         assert!(rendered.contains("┏"));
+    }
+
+    #[test]
+    fn mode_banner_ascii_fallback_uses_ascii_frame() {
+        let rendered = mode_banner_adaptive(Mode::Training, false, 80, false);
+        assert!(rendered.contains('+'));
+        assert!(rendered.contains("SOLO TRAINING SIM"));
+    }
+
+    #[test]
+    fn section_banner_compacts_on_narrow_width() {
+        let rendered = section_banner_adaptive(Mode::NetCity, "MISSION BOARD", 20, true);
+        assert!(rendered.contains("[ MISSION BOARD ]"));
     }
 
     #[test]

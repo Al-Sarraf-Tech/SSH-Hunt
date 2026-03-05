@@ -86,6 +86,20 @@ if [[ "${cpu_limit_count}" != "5" ]]; then
   exit 1
 fi
 
+run_as_root_false_count="$(grep -En '^[[:space:]]{6}RUN_AS_ROOT:[[:space:]]"false"$' "${runner_compose}" | wc -l | tr -d ' ')"
+if [[ "${run_as_root_false_count}" != "5" ]]; then
+  echo "Runner security directive violation: all 5 services must set RUN_AS_ROOT=false."
+  echo "Found ${run_as_root_false_count} RUN_AS_ROOT=false declarations."
+  exit 1
+fi
+
+docker_gid_map_count="$(grep -En '^[[:space:]]{6}-[[:space:]]"\$\{RUNNER_DOCKER_GID:-976\}"$' "${runner_compose}" | wc -l | tr -d ' ')"
+if [[ "${docker_gid_map_count}" != "5" ]]; then
+  echo "Runner security directive violation: all 5 services must map RUNNER_DOCKER_GID in group_add."
+  echo "Found ${docker_gid_map_count} RUNNER_DOCKER_GID mappings."
+  exit 1
+fi
+
 if ! grep -Eq '^RUNNER_TOTAL_CPU_FRACTION=0\.75$' "${runner_env_example}"; then
   echo "Runner CPU policy violation: ${runner_env_example} must define RUNNER_TOTAL_CPU_FRACTION=0.75."
   exit 1
@@ -98,6 +112,21 @@ fi
 
 if ! grep -Eq '^RUNNER_CPU_LIMIT_PER_CONTAINER=' "${runner_env_example}"; then
   echo "Runner CPU policy violation: ${runner_env_example} must define RUNNER_CPU_LIMIT_PER_CONTAINER."
+  exit 1
+fi
+
+if ! grep -Eq '^RUNNER_DOCKER_GID=' "${runner_env_example}"; then
+  echo "Runner socket policy violation: ${runner_env_example} must define RUNNER_DOCKER_GID."
+  exit 1
+fi
+
+if ! grep -En '^USER runner$' "${runner_dockerfile}" >/dev/null; then
+  echo "Runner security directive violation: ${runner_dockerfile} must end with USER runner."
+  exit 1
+fi
+
+if ! grep -En 'trivy_' "${runner_dockerfile}" >/dev/null; then
+  echo "Runner tooling directive violation: ${runner_dockerfile} must install trivy."
   exit 1
 fi
 

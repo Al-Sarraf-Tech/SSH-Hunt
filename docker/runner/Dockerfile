@@ -4,6 +4,7 @@ USER root
 
 ARG GITLEAKS_VERSION=8.24.3
 ARG OSV_SCANNER_VERSION=2.3.3
+ARG TRIVY_VERSION=0.69.3
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
@@ -22,10 +23,12 @@ RUN set -eux; \
       amd64) \
         gitleaks_arch="x64"; \
         osv_asset="osv-scanner_linux_amd64"; \
+        trivy_arch="64bit"; \
         ;; \
       arm64) \
         gitleaks_arch="arm64"; \
         osv_asset="osv-scanner_linux_arm64"; \
+        trivy_arch="ARM64"; \
         ;; \
       *) \
         echo "Unsupported architecture: ${arch}" >&2; \
@@ -37,4 +40,10 @@ RUN set -eux; \
     chmod +x /usr/local/bin/gitleaks; \
     curl -fsSL "https://github.com/google/osv-scanner/releases/download/v${OSV_SCANNER_VERSION}/${osv_asset}" \
       -o /usr/local/bin/osv-scanner; \
-    chmod +x /usr/local/bin/osv-scanner
+    chmod +x /usr/local/bin/osv-scanner; \
+    curl -fsSL "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-${trivy_arch}.tar.gz" \
+      | tar -xz -C /tmp trivy; \
+    install -m 0755 /tmp/trivy /usr/local/bin/trivy; \
+    rm -f /tmp/trivy
+
+USER runner

@@ -22,8 +22,8 @@ use tokio::net::TcpListener;
 use tokio::time::{sleep, timeout};
 use tracing::{error, info, warn};
 use ui::{
-    key_value_line, lore_message, mission_state_badge, mode_banner, mode_switch_banner,
-    progress_meter, section_banner, Theme, RESET,
+    key_value_line, lore_message, mission_state_badge, mode_banner_adaptive, mode_switch_banner,
+    progress_meter, section_banner_adaptive, Theme, RESET,
 };
 use uuid::Uuid;
 use vfs::Vfs;
@@ -143,6 +143,7 @@ struct GameSession {
     script_cooldown_until: Option<Instant>,
     command_window: VecDeque<Instant>,
     supports_ansi: bool,
+    supports_unicode: bool,
     pending_lf_after_cr: bool,
     escape_sequence_remaining: u8,
     pty_columns: u32,
@@ -168,6 +169,7 @@ impl GameSession {
             script_cooldown_until: None,
             command_window: VecDeque::new(),
             supports_ansi: true,
+            supports_unicode: true,
             pending_lf_after_cr: false,
             escape_sequence_remaining: 0,
             pty_columns: 80,
@@ -382,7 +384,7 @@ impl GameSession {
         match cmd {
             "help" => {
                 let theme = Theme::for_mode(self.mode.clone());
-                let mut out = section_banner(self.mode.clone(), "COMMAND MATRIX");
+                let mut out = self.render_section_banner("COMMAND MATRIX");
                 out.push_str(&format!(
                     "{}Quickstart{} tutorial start -> missions -> gate -> mode netcity\n",
                     theme.accent, RESET
@@ -408,7 +410,7 @@ impl GameSession {
                     .netcity_gate_reason(player_id, &self.offered_fingerprints)
                     .await?;
                 let out = if let Some(reason) = gate {
-                    let mut msg = section_banner(self.mode.clone(), "NETCITY GATE // LOCKED");
+                    let mut msg = self.render_section_banner("NETCITY GATE // LOCKED");
                     msg.push_str(&key_value_line(self.mode.clone(), "Reason", &reason));
                     msg.push('\n');
                     msg.push_str("Unlock checklist\n");
@@ -420,7 +422,7 @@ impl GameSession {
                     msg.push_str("  [ ] reconnect with registered SSH key\n");
                     msg
                 } else {
-                    let mut msg = section_banner(self.mode.clone(), "NETCITY GATE // UNLOCKED");
+                    let mut msg = self.render_section_banner("NETCITY GATE // UNLOCKED");
                     msg.push_str("Use: mode netcity\n");
                     msg
                 };
@@ -432,7 +434,7 @@ impl GameSession {
                     .and_then(|raw| raw.parse::<usize>().ok())
                     .unwrap_or(10);
                 let entries = self.app.world.leaderboard_snapshot(requested).await;
-                let mut out = section_banner(self.mode.clone(), "LEADERBOARD");
+                let mut out = self.render_section_banner("LEADERBOARD");
                 out.push_str("RANK  PLAYER                    REP   WALLET   ACH\n");
                 for (idx, entry) in entries.iter().enumerate() {
                     let rank = idx + 1;
@@ -454,7 +456,7 @@ impl GameSession {
             }
             "tutorial" => {
                 if args.first() == Some(&"start") {
-                    let mut out = section_banner(self.mode.clone(), "TUTORIAL START");
+                    let mut out = self.render_section_banner("TUTORIAL START");
                     out.push_str("Prompt format: <username>@<node>:/path$\n");
                     out.push('\n');
                     out.push_str("Command chain drills\n");
@@ -474,7 +476,7 @@ impl GameSession {
             }
             "missions" => {
                 let missions = self.app.world.mission_statuses(player_id).await?;
-                let mut out = section_banner(self.mode.clone(), "MISSION BOARD");
+                let mut out = self.render_section_banner("MISSION BOARD");
                 out.push_str("CODE             STATE      PROG                 REQUIRED  TITLE\n");
                 for m in missions {
                     let badge = mission_state_badge(self.mode.clone(), &m.state);
@@ -763,7 +765,7 @@ impl GameSession {
                 };
                 let gate_pct = if gate.is_none() { 100 } else { 20 };
 
-                let mut out = section_banner(self.mode.clone(), "PLAYER STATUS");
+                let mut out = self.render_section_banner("PLAYER STATUS");
                 out.push_str(&key_value_line(
                     self.mode.clone(),
                     "Alias",
@@ -830,7 +832,7 @@ impl GameSession {
                     return Ok(("No upcoming world events.\n".to_owned(), 0, false));
                 }
                 let now = chrono::Utc::now();
-                let mut out = section_banner(self.mode.clone(), "WORLD EVENTS");
+                let mut out = self.render_section_banner("WORLD EVENTS");
                 for event in feed {
                     let status = if event.active {
                         format!(
@@ -852,7 +854,7 @@ impl GameSession {
             }
             "scripts" => {
                 if args.first() == Some(&"market") || args.is_empty() {
-                    let mut out = section_banner(self.mode.clone(), "SCRIPT MARKET");
+                    let mut out = self.render_section_banner("SCRIPT MARKET");
                     for entry in script_market() {
                         out.push_str(&format!(
                             "- {:<12} {}{}\n",
@@ -1061,7 +1063,7 @@ impl GameSession {
         out.push('\n');
         out.push_str(lore_message(self.mode.clone()));
         out.push('\n');
-        out.push_str(&section_banner(self.mode.clone(), "BOOT HUD"));
+        out.push_str(&self.render_section_banner("BOOT HUD"));
         out.push_str(&format!(
             "{}Next{} tutorial start -> missions -> gate -> mode netcity\n",
             theme.accent, RESET
@@ -1086,11 +1088,25 @@ impl GameSession {
     }
 
     fn render_mode_banner(&self, mode: Mode) -> String {
-        if self.pty_columns > 0 && self.pty_columns < 50 {
+        if self.pty_columns > 0 && self.pty_columns < 36 {
             let theme = Theme::for_mode(mode.clone());
             return format!("{}[ {} ]{}", theme.primary, mode.as_label(), RESET);
         }
-        mode_banner(mode, self.flash_enabled)
+        mode_banner_adaptive(
+            mode,
+            self.flash_enabled,
+            self.pty_columns.max(20) as usize,
+            self.supports_unicode,
+        )
+    }
+
+    fn render_section_banner(&self, title: &str) -> String {
+        section_banner_adaptive(
+            self.mode.clone(),
+            title,
+            self.pty_columns.max(20) as usize,
+            self.supports_unicode,
+        )
     }
 
     fn render_for_client(&self, text: &str) -> String {
@@ -1215,6 +1231,36 @@ impl server::Handler for GameSession {
         session: &mut server::Session,
     ) -> Result<(), Self::Error> {
         self.supports_ansi = terminal_supports_ansi(term);
+        self.supports_unicode = terminal_supports_unicode(term);
+        self.pty_columns = col_width.max(20);
+        session.channel_success(channel)?;
+        Ok(())
+    }
+
+    async fn env_request(
+        &mut self,
+        channel: ChannelId,
+        variable_name: &str,
+        variable_value: &str,
+        session: &mut server::Session,
+    ) -> Result<(), Self::Error> {
+        let var = variable_name.to_ascii_uppercase();
+        if (var == "LANG" || var == "LC_ALL") && !locale_supports_unicode(variable_value) {
+            self.supports_unicode = false;
+        }
+        session.channel_success(channel)?;
+        Ok(())
+    }
+
+    async fn window_change_request(
+        &mut self,
+        channel: ChannelId,
+        col_width: u32,
+        _row_height: u32,
+        _pix_width: u32,
+        _pix_height: u32,
+        session: &mut server::Session,
+    ) -> Result<(), Self::Error> {
         self.pty_columns = col_width.max(20);
         session.channel_success(channel)?;
         Ok(())
@@ -1314,9 +1360,11 @@ impl server::Handler for GameSession {
 }
 
 fn sanitize_prompt_user(input: &str) -> String {
-    let cleaned = input
+    let base = strip_ansi_sequences(input);
+    let short = base.split('@').next().unwrap_or_default();
+    let cleaned = short
         .chars()
-        .take(32)
+        .take(24)
         .filter(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '-' | '_' | '.'))
         .collect::<String>();
     if cleaned.is_empty() {
@@ -1329,6 +1377,22 @@ fn sanitize_prompt_user(input: &str) -> String {
 fn terminal_supports_ansi(term: &str) -> bool {
     let t = term.trim().to_ascii_lowercase();
     !t.is_empty() && t != "dumb" && t != "cons25"
+}
+
+fn terminal_supports_unicode(term: &str) -> bool {
+    let t = term.trim().to_ascii_lowercase();
+    if t.is_empty() {
+        return false;
+    }
+    !matches!(
+        t.as_str(),
+        "dumb" | "cons25" | "linux" | "ansi" | "vt100" | "vt102" | "vt220"
+    )
+}
+
+fn locale_supports_unicode(locale: &str) -> bool {
+    let l = locale.trim().to_ascii_lowercase();
+    l.contains("utf-8") || l.contains("utf8")
 }
 
 fn strip_ansi_sequences(input: &str) -> String {
@@ -1742,8 +1806,8 @@ mod tests {
     #[test]
     fn prompt_user_is_sanitized() {
         assert_eq!(sanitize_prompt_user("snake8503"), "snake8503");
-        assert_eq!(sanitize_prompt_user("neo@203.0.113.10"), "neo203.0.113.10");
-        assert_eq!(sanitize_prompt_user("\x1b[31mroot"), "31mroot");
+        assert_eq!(sanitize_prompt_user("neo@203.0.113.10"), "neo");
+        assert_eq!(sanitize_prompt_user("\x1b[31mroot"), "root");
         assert_eq!(sanitize_prompt_user(""), "guest");
     }
 
@@ -1751,5 +1815,15 @@ mod tests {
     fn line_endings_are_normalized_for_cross_terminal_clients() {
         assert_eq!(normalize_line_endings("a\nb"), "a\r\nb");
         assert_eq!(normalize_line_endings("a\r\nb\n"), "a\r\nb\r\n");
+    }
+
+    #[test]
+    fn terminal_capability_detection_is_reasonable() {
+        assert!(terminal_supports_ansi("xterm-256color"));
+        assert!(!terminal_supports_ansi("dumb"));
+        assert!(terminal_supports_unicode("xterm-256color"));
+        assert!(!terminal_supports_unicode("vt100"));
+        assert!(locale_supports_unicode("en_US.UTF-8"));
+        assert!(!locale_supports_unicode("C"));
     }
 }

@@ -324,6 +324,7 @@ Runner policy:
 - self-hosted compose stack must include `1` persistent + `4` ephemeral runners,
 - self-hosted runners use host networking so CI service containers are reachable,
 - runner CPU policy: total runner pool budget is `75%` of host cores, auto-divided across 5 containers via `scripts/refresh-runner-cpu-budget.sh`,
+- runner containers default to non-root mode and map host docker socket group (`RUNNER_DOCKER_GID`) for Docker build access,
 - policy enforcement script: `./scripts/verify-self-hosted-runner-directive.sh` runs on every `push` in Security workflow.
 
 Self-hosted runner setup:
@@ -362,7 +363,8 @@ Cross-shell UI compatibility notes (PowerShell, bash, zsh, macOS Terminal, iTerm
 - server normalizes all output to CRLF over SSH PTY so banners/prompt do not stair-step,
 - CR, LF, and CRLF Enter key variants are de-duplicated server-side,
 - terminal escape input sequences (for example arrow keys) are ignored safely in command buffer,
-- very narrow terminals use a compact mode header to avoid broken box wrapping.
+- very narrow terminals use compact headers/sections to avoid broken wrapping,
+- frame rendering auto-falls back to ASCII on low-capability terminals and adapts on terminal resize.
 
 If you see host key warnings after server rebuild:
 

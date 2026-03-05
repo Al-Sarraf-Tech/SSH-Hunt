@@ -13,8 +13,11 @@ services:
       RUNNER_WORKDIR: /tmp/runner/work
       RUNNER_EPHEMERAL: ${RUNNER_EPHEMERAL:-false}
       RUNNER_NAME: ${RUNNER_NAME:-ssh-hunt-runner-01}
+      RUN_AS_ROOT: "false"
     network_mode: host
     cpus: ${RUNNER_CPU_LIMIT_PER_CONTAINER:-0.1500}
+    group_add:
+      - "${RUNNER_DOCKER_GID:-976}"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./volumes/gh-runner:/tmp/runner
@@ -35,8 +38,11 @@ services:
       RUNNER_WORKDIR: /tmp/runner/work
       RUNNER_EPHEMERAL: true
       RUNNER_NAME: ${RUNNER_NAME_PREFIX:-ssh-hunt-runner}-ephemeral-1
+      RUN_AS_ROOT: "false"
     network_mode: host
     cpus: ${RUNNER_CPU_LIMIT_PER_CONTAINER:-0.1500}
+    group_add:
+      - "${RUNNER_DOCKER_GID:-976}"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./volumes/gh-runner-ephemeral-1:/tmp/runner
@@ -57,8 +63,11 @@ services:
       RUNNER_WORKDIR: /tmp/runner/work
       RUNNER_EPHEMERAL: true
       RUNNER_NAME: ${RUNNER_NAME_PREFIX:-ssh-hunt-runner}-ephemeral-2
+      RUN_AS_ROOT: "false"
     network_mode: host
     cpus: ${RUNNER_CPU_LIMIT_PER_CONTAINER:-0.1500}
+    group_add:
+      - "${RUNNER_DOCKER_GID:-976}"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./volumes/gh-runner-ephemeral-2:/tmp/runner
@@ -79,8 +88,11 @@ services:
       RUNNER_WORKDIR: /tmp/runner/work
       RUNNER_EPHEMERAL: true
       RUNNER_NAME: ${RUNNER_NAME_PREFIX:-ssh-hunt-runner}-ephemeral-3
+      RUN_AS_ROOT: "false"
     network_mode: host
     cpus: ${RUNNER_CPU_LIMIT_PER_CONTAINER:-0.1500}
+    group_add:
+      - "${RUNNER_DOCKER_GID:-976}"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./volumes/gh-runner-ephemeral-3:/tmp/runner
@@ -101,8 +113,11 @@ services:
       RUNNER_WORKDIR: /tmp/runner/work
       RUNNER_EPHEMERAL: true
       RUNNER_NAME: ${RUNNER_NAME_PREFIX:-ssh-hunt-runner}-ephemeral-4
+      RUN_AS_ROOT: "false"
     network_mode: host
     cpus: ${RUNNER_CPU_LIMIT_PER_CONTAINER:-0.1500}
+    group_add:
+      - "${RUNNER_DOCKER_GID:-976}"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./volumes/gh-runner-ephemeral-4:/tmp/runner
