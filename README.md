@@ -37,7 +37,11 @@ Live public connection endpoint:
 SSH-Hunt is designed for hostile internet exposure while keeping gameplay isolated from the host OS.
 Players connect with a normal SSH client and interact with a simulated terminal, missions, economy, and multiplayer systems.
 
-Identity shown in-game is always:
+Interactive shell prompt format:
+
+`<ssh_username>@<node>:/path$`
+
+Player identity shown in social/leaderboard views:
 
 `<ssh_username>@<remote_ip>`
 
@@ -352,6 +356,13 @@ Windows `ssh -vvvv` notes:
 - `Failed to open .../.ssh/config error:2` is non-fatal when those files do not exist.
 - `error: 10061` means TCP was actively refused at the target edge (service down or wrong port-forward destination).
 - `error: 10060` means timeout (traffic dropped/blocked on path).
+
+Cross-shell UI compatibility notes (PowerShell, bash, zsh, macOS Terminal, iTerm2):
+
+- server normalizes all output to CRLF over SSH PTY so banners/prompt do not stair-step,
+- CR, LF, and CRLF Enter key variants are de-duplicated server-side,
+- terminal escape input sequences (for example arrow keys) are ignored safely in command buffer,
+- very narrow terminals use a compact mode header to avoid broken box wrapping.
 
 If you see host key warnings after server rebuild:
 

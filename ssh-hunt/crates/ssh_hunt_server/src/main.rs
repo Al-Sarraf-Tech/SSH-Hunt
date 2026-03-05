@@ -56,7 +56,7 @@ struct ShellState {
 }
 
 impl ShellState {
-    fn bootstrap(display_name: &str) -> Self {
+    fn bootstrap(prompt_user: &str) -> Self {
         let mut vfs = Vfs::default();
         let _ = vfs.mkdir_p("/", "home", "system");
         let _ = vfs.mkdir_p("/", "tmp", "system");
@@ -82,7 +82,7 @@ impl ShellState {
         let cwd = "/home/player".to_owned();
         let node = "corp-sim-01".to_owned();
         let mut env = HashMap::new();
-        env.insert("USER".to_owned(), display_name.to_owned());
+        env.insert("USER".to_owned(), prompt_user.to_owned());
         env.insert("HOME".to_owned(), "/home/player".to_owned());
         env.insert("PWD".to_owned(), cwd.clone());
         env.insert("PATH".to_owned(), "/bin:/usr/bin".to_owned());
@@ -91,7 +91,7 @@ impl ShellState {
         Self {
             vfs,
             cwd,
-            user: display_name.to_owned(),
+            user: prompt_user.to_owned(),
             node,
             env,
             last_exit: 0,
@@ -142,6 +142,10 @@ struct GameSession {
     redline_until: Option<Instant>,
     script_cooldown_until: Option<Instant>,
     command_window: VecDeque<Instant>,
+    supports_ansi: bool,
+    pending_lf_after_cr: bool,
+    escape_sequence_remaining: u8,
+    pty_columns: u32,
 }
 
 impl GameSession {
@@ -163,6 +167,10 @@ impl GameSession {
             redline_until: None,
             script_cooldown_until: None,
             command_window: VecDeque::new(),
+            supports_ansi: true,
+            pending_lf_after_cr: false,
+            escape_sequence_remaining: 0,
+            pty_columns: 80,
         }
     }
 
@@ -180,7 +188,9 @@ impl GameSession {
         self.player_id = Some(profile.id);
         self.mode = Mode::Training;
         self.flash_enabled = self.app.cfg.ui.flash_default;
-        self.shell_state = Some(ShellState::bootstrap(&profile.display_name));
+        self.shell_state = Some(ShellState::bootstrap(&sanitize_prompt_user(
+            &profile.username,
+        )));
         self.profile = Some(profile.clone());
 
         if let Some(secret) = &self.app.admin_secret {
@@ -445,7 +455,7 @@ impl GameSession {
             "tutorial" => {
                 if args.first() == Some(&"start") {
                     let mut out = section_banner(self.mode.clone(), "TUTORIAL START");
-                    out.push_str("Prompt format: <username@remote_ip>@<node>:/path$\n");
+                    out.push_str("Prompt format: <username>@<node>:/path$\n");
                     out.push('\n');
                     out.push_str("Command chain drills\n");
                     out.push_str("  cat /logs/neon-gateway.log | grep token | wc -l\n");
@@ -676,7 +686,7 @@ impl GameSession {
                 self.mode = target.clone();
                 let mut out = String::new();
                 out.push_str(&mode_switch_banner(old, target.clone()));
-                out.push_str(&mode_banner(target.clone(), self.flash_enabled));
+                out.push_str(&self.render_mode_banner(target.clone()));
                 out.push('\n');
                 out.push_str(lore_message(target));
                 out.push('\n');
@@ -1047,7 +1057,7 @@ impl GameSession {
     fn welcome_banner(&self) -> String {
         let theme = Theme::for_mode(self.mode.clone());
         let mut out = String::new();
-        out.push_str(&mode_banner(self.mode.clone(), self.flash_enabled));
+        out.push_str(&self.render_mode_banner(self.mode.clone()));
         out.push('\n');
         out.push_str(lore_message(self.mode.clone()));
         out.push('\n');
@@ -1074,6 +1084,68 @@ impl GameSession {
             .map(ShellState::prompt)
             .unwrap_or_else(|| "guest@boot:/$ ".to_owned())
     }
+
+    fn render_mode_banner(&self, mode: Mode) -> String {
+        if self.pty_columns > 0 && self.pty_columns < 50 {
+            let theme = Theme::for_mode(mode.clone());
+            return format!("{}[ {} ]{}", theme.primary, mode.as_label(), RESET);
+        }
+        mode_banner(mode, self.flash_enabled)
+    }
+
+    fn render_for_client(&self, text: &str) -> String {
+        let raw = if self.supports_ansi {
+            text.to_owned()
+        } else {
+            strip_ansi_sequences(text)
+        };
+        normalize_line_endings(&raw)
+    }
+
+    fn send_text(
+        &self,
+        session: &mut server::Session,
+        channel: ChannelId,
+        text: &str,
+    ) -> Result<(), anyhow::Error> {
+        session.data(channel, CryptoVec::from(self.render_for_client(text)))?;
+        Ok(())
+    }
+
+    async fn submit_line(
+        &mut self,
+        session: &mut server::Session,
+        channel: ChannelId,
+    ) -> Result<bool, anyhow::Error> {
+        if self.line_buffer.is_empty() {
+            self.send_text(session, channel, "\n")?;
+            self.send_text(session, channel, &self.prompt())?;
+            return Ok(false);
+        }
+
+        let line = String::from_utf8_lossy(&self.line_buffer).to_string();
+        self.line_buffer.clear();
+        self.send_text(session, channel, "\n")?;
+
+        let (out, code, should_close) = match self.run_line(&line).await {
+            Ok(v) => v,
+            Err(err) => (format!("{err}\n"), 1, false),
+        };
+
+        if !out.is_empty() {
+            self.send_text(session, channel, &out)?;
+        }
+        session.exit_status_request(channel, code as u32)?;
+
+        if should_close {
+            session.eof(channel)?;
+            session.close(channel)?;
+            return Ok(true);
+        }
+
+        self.send_text(session, channel, &self.prompt())?;
+        Ok(false)
+    }
 }
 
 impl server::Server for GameServer {
@@ -1092,7 +1164,7 @@ impl server::Handler for GameSession {
     type Error = anyhow::Error;
 
     async fn auth_none(&mut self, user: &str) -> Result<server::Auth, Self::Error> {
-        self.username = user.to_owned();
+        self.username = sanitize_prompt_user(user);
         Ok(server::Auth::Accept)
     }
 
@@ -1101,7 +1173,7 @@ impl server::Handler for GameSession {
         user: &str,
         public_key: &russh::keys::ssh_key::PublicKey,
     ) -> Result<server::Auth, Self::Error> {
-        self.username = user.to_owned();
+        self.username = sanitize_prompt_user(user);
         let fp = sha256_hex(&format!("{public_key:?}"));
         self.offered_fingerprints.push(format!("SHA256:{fp}"));
         Ok(server::Auth::Accept)
@@ -1112,7 +1184,7 @@ impl server::Handler for GameSession {
         user: &str,
         _public_key: &russh::keys::ssh_key::PublicKey,
     ) -> Result<server::Auth, Self::Error> {
-        self.username = user.to_owned();
+        self.username = sanitize_prompt_user(user);
         Ok(server::Auth::Accept)
     }
 
@@ -1134,14 +1206,16 @@ impl server::Handler for GameSession {
     async fn pty_request(
         &mut self,
         channel: ChannelId,
-        _term: &str,
-        _col_width: u32,
+        term: &str,
+        col_width: u32,
         _row_height: u32,
         _pix_width: u32,
         _pix_height: u32,
         _modes: &[(russh::Pty, u32)],
         session: &mut server::Session,
     ) -> Result<(), Self::Error> {
+        self.supports_ansi = terminal_supports_ansi(term);
+        self.pty_columns = col_width.max(20);
         session.channel_success(channel)?;
         Ok(())
     }
@@ -1152,8 +1226,8 @@ impl server::Handler for GameSession {
         session: &mut server::Session,
     ) -> Result<(), Self::Error> {
         session.channel_success(channel)?;
-        session.data(channel, CryptoVec::from(self.welcome_banner()))?;
-        session.data(channel, CryptoVec::from(self.prompt()))?;
+        self.send_text(session, channel, &self.welcome_banner())?;
+        self.send_text(session, channel, &self.prompt())?;
         Ok(())
     }
 
@@ -1169,7 +1243,7 @@ impl server::Handler for GameSession {
             .run_line(&line)
             .await
             .unwrap_or_else(|err| (format!("Execution error: {err}\n"), 1, false));
-        session.data(channel, CryptoVec::from(out))?;
+        self.send_text(session, channel, &out)?;
         session.exit_status_request(channel, code as u32)?;
         session.eof(channel)?;
         session.close(channel)?;
@@ -1184,47 +1258,52 @@ impl server::Handler for GameSession {
     ) -> Result<(), Self::Error> {
         for byte in data {
             match *byte {
-                b'\r' | b'\n' => {
-                    if self.line_buffer.is_empty() {
-                        session.data(channel, CryptoVec::from("\r\n"))?;
-                        session.data(channel, CryptoVec::from(self.prompt()))?;
-                        continue;
-                    }
-
-                    let line = String::from_utf8_lossy(&self.line_buffer).to_string();
-                    self.line_buffer.clear();
-                    session.data(channel, CryptoVec::from("\r\n"))?;
-
-                    let (out, code, should_close) = match self.run_line(&line).await {
-                        Ok(v) => v,
-                        Err(err) => (format!("{err}\n"), 1, false),
-                    };
-
-                    if !out.is_empty() {
-                        session.data(channel, CryptoVec::from(out))?;
-                    }
-                    session.exit_status_request(channel, code as u32)?;
-
-                    if should_close {
-                        session.eof(channel)?;
-                        session.close(channel)?;
+                b'\r' => {
+                    self.pending_lf_after_cr = true;
+                    self.escape_sequence_remaining = 0;
+                    if self.submit_line(session, channel).await? {
                         return Ok(());
                     }
-
-                    session.data(channel, CryptoVec::from(self.prompt()))?;
+                }
+                b'\n' => {
+                    if self.pending_lf_after_cr {
+                        self.pending_lf_after_cr = false;
+                        continue;
+                    }
+                    self.escape_sequence_remaining = 0;
+                    if self.submit_line(session, channel).await? {
+                        return Ok(());
+                    }
                 }
                 3 => {
+                    self.pending_lf_after_cr = false;
+                    self.escape_sequence_remaining = 0;
                     self.line_buffer.clear();
-                    session.data(channel, CryptoVec::from("^C\r\n"))?;
-                    session.data(channel, CryptoVec::from(self.prompt()))?;
+                    self.send_text(session, channel, "^C\n")?;
+                    self.send_text(session, channel, &self.prompt())?;
                 }
                 127 | 8 => {
+                    self.pending_lf_after_cr = false;
+                    self.escape_sequence_remaining = 0;
                     if !self.line_buffer.is_empty() {
                         self.line_buffer.pop();
                         session.data(channel, CryptoVec::from("\x08 \x08"))?;
                     }
                 }
+                0x1b => {
+                    self.pending_lf_after_cr = false;
+                    self.escape_sequence_remaining = 8;
+                }
                 b => {
+                    self.pending_lf_after_cr = false;
+                    if self.escape_sequence_remaining > 0 {
+                        self.escape_sequence_remaining =
+                            self.escape_sequence_remaining.saturating_sub(1);
+                        if b.is_ascii_alphabetic() || b == b'~' {
+                            self.escape_sequence_remaining = 0;
+                        }
+                        continue;
+                    }
                     self.line_buffer.push(b);
                     session.data(channel, CryptoVec::from(vec![b]))?;
                 }
@@ -1234,10 +1313,86 @@ impl server::Handler for GameSession {
     }
 }
 
+fn sanitize_prompt_user(input: &str) -> String {
+    let cleaned = input
+        .chars()
+        .take(32)
+        .filter(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '-' | '_' | '.'))
+        .collect::<String>();
+    if cleaned.is_empty() {
+        "guest".to_owned()
+    } else {
+        cleaned
+    }
+}
+
+fn terminal_supports_ansi(term: &str) -> bool {
+    let t = term.trim().to_ascii_lowercase();
+    !t.is_empty() && t != "dumb" && t != "cons25"
+}
+
+fn strip_ansi_sequences(input: &str) -> String {
+    let bytes = input.as_bytes();
+    let mut out = Vec::with_capacity(bytes.len());
+    let mut i = 0usize;
+    while i < bytes.len() {
+        if bytes[i] != 0x1b {
+            out.push(bytes[i]);
+            i += 1;
+            continue;
+        }
+
+        i += 1;
+        if i >= bytes.len() {
+            break;
+        }
+        if bytes[i] == b'[' {
+            i += 1;
+            while i < bytes.len() {
+                let b = bytes[i];
+                i += 1;
+                if (b'@'..=b'~').contains(&b) {
+                    break;
+                }
+            }
+            continue;
+        }
+
+        i += 1;
+    }
+
+    String::from_utf8_lossy(&out).into_owned()
+}
+
+fn normalize_line_endings(input: &str) -> String {
+    let mut out = String::with_capacity(input.len() + 8);
+    let mut prev_was_cr = false;
+    for ch in input.chars() {
+        match ch {
+            '\n' => {
+                if !prev_was_cr {
+                    out.push('\r');
+                }
+                out.push('\n');
+                prev_was_cr = false;
+            }
+            '\r' => {
+                out.push('\r');
+                prev_was_cr = true;
+            }
+            _ => {
+                out.push(ch);
+                prev_was_cr = false;
+            }
+        }
+    }
+    out
+}
+
 fn escape_attempt_reason(line: &str) -> Option<&'static str> {
     let lower = line.to_ascii_lowercase();
     let trimmed = lower.trim();
-    let checks: [(&str, &str); 4] = [
+    let checks: [(&str, &str); 9] = [
         ("std::process::command", "forbidden host process API probe"),
         (
             "tokio::process::command",
@@ -1245,6 +1400,11 @@ fn escape_attempt_reason(line: &str) -> Option<&'static str> {
         ),
         ("/var/run/docker.sock", "container socket breakout probe"),
         ("/proc/", "host filesystem probe"),
+        ("/etc/passwd", "host credential probe"),
+        ("/root/.ssh", "root credential probe"),
+        ("powershell.exe", "host shell invocation attempt"),
+        ("pwsh -", "host shell invocation attempt"),
+        ("cmd.exe /c", "host shell invocation attempt"),
     ];
 
     for (needle, reason) in checks {
@@ -1269,7 +1429,8 @@ fn escape_attempt_reason(line: &str) -> Option<&'static str> {
         };
         let rest = parts.collect::<Vec<_>>();
         match cmd {
-            "/bin/bash" | "/bin/sh" | "powershell" | "cmd.exe" => {
+            "/bin/bash" | "/bin/sh" | "/bin/zsh" | "powershell" | "powershell.exe" | "pwsh"
+            | "cmd" | "cmd.exe" | "zsh" | "fish" => {
                 return Some("host shell invocation attempt");
             }
             "bash" | "sh" => {
@@ -1278,21 +1439,22 @@ fn escape_attempt_reason(line: &str) -> Option<&'static str> {
                 }
                 return Some("host shell escalation attempt");
             }
+            "python" | "python3" | "perl" | "ruby" | "node" | "lua" | "php" => {
+                if rest.contains(&"-c")
+                    || rest.contains(&"-e")
+                    || rest.contains(&"-r")
+                    || rest.contains(&"--eval")
+                {
+                    return Some("runtime escape attempt");
+                }
+                return Some("runtime interpreter launch attempt");
+            }
             "sudo" | "su" => return Some("privilege escalation attempt"),
             "docker" | "podman" => return Some("container breakout tooling probe"),
             "systemctl" => return Some("host service control probe"),
-            "nc" | "netcat" => return Some("network pivot attempt"),
+            "nc" | "ncat" | "netcat" | "socat" => return Some("network pivot attempt"),
             "nmap" => return Some("network scan attempt"),
-            "python" | "python3" => {
-                if rest.contains(&"-c") {
-                    return Some("runtime escape attempt");
-                }
-            }
-            "perl" | "ruby" => {
-                if rest.contains(&"-e") {
-                    return Some("runtime escape attempt");
-                }
-            }
+            "ssh" | "scp" | "sftp" | "telnet" | "ftp" => return Some("network pivot attempt"),
             "curl" | "wget" => {
                 if rest
                     .iter()
@@ -1557,11 +1719,37 @@ mod tests {
             Some("host shell execution attempt")
         );
         assert_eq!(
+            escape_attempt_reason("pwsh --eval whoami"),
+            Some("host shell invocation attempt")
+        );
+        assert_eq!(
+            escape_attempt_reason("python3"),
+            Some("runtime interpreter launch attempt")
+        );
+        assert_eq!(
             escape_attempt_reason("cat /var/run/docker.sock"),
             Some("container socket breakout probe")
+        );
+        assert_eq!(
+            escape_attempt_reason("ssh admin@example.com"),
+            Some("network pivot attempt")
         );
         assert_eq!(escape_attempt_reason("cat /logs/neon-gateway.log"), None);
         assert_eq!(escape_attempt_reason("echo docker"), None);
         assert_eq!(escape_attempt_reason("chat global bash -c 'id'"), None);
+    }
+
+    #[test]
+    fn prompt_user_is_sanitized() {
+        assert_eq!(sanitize_prompt_user("snake8503"), "snake8503");
+        assert_eq!(sanitize_prompt_user("neo@203.0.113.10"), "neo203.0.113.10");
+        assert_eq!(sanitize_prompt_user("\x1b[31mroot"), "31mroot");
+        assert_eq!(sanitize_prompt_user(""), "guest");
+    }
+
+    #[test]
+    fn line_endings_are_normalized_for_cross_terminal_clients() {
+        assert_eq!(normalize_line_endings("a\nb"), "a\r\nb");
+        assert_eq!(normalize_line_endings("a\r\nb\n"), "a\r\nb\r\n");
     }
 }
