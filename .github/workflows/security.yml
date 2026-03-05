@@ -51,7 +51,7 @@ jobs:
         run: cargo install cargo-deny --locked
 
       - name: Cargo deny
-        run: cargo deny check bans licenses sources
+        run: cargo deny check --config deny.toml --hide-inclusion-graph bans licenses sources
         working-directory: ssh-hunt
 
       - name: Server security regression tests

@@ -29,7 +29,7 @@ jobs:
         working-directory: ssh-hunt
 
       - name: Policy checks
-        run: cargo deny check bans licenses sources
+        run: cargo deny check --config deny.toml --hide-inclusion-graph bans licenses sources
         working-directory: ssh-hunt
 
       - name: Trivy full repo scan
@@ -60,7 +60,7 @@ jobs:
           cargo update -w
 
       - name: Create dependency update PR
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           commit-message: "chore(deps): weekly dependency refresh"
           branch: "automation/weekly-dependency-refresh"

@@ -18,6 +18,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Compute image name
+        id: image
+        run: |
+          repo_lc="$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')"
+          echo "name=ghcr.io/${repo_lc}/ssh-hunt" >> "$GITHUB_OUTPUT"
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -35,11 +41,17 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository }}/ssh-hunt
+          images: ${{ steps.image.outputs.name }}
           tags: |
             type=ref,event=branch
             type=ref,event=tag
             type=sha
+
+      - name: Select primary image tag
+        id: primary_tag
+        run: |
+          primary="$(echo "${{ steps.meta.outputs.tags }}" | tr ',' '\n' | head -n 1)"
+          echo "tag=${primary}" >> "$GITHUB_OUTPUT"
 
       - name: Build and push
         id: build
@@ -63,13 +75,13 @@ jobs:
       - name: Generate SBOM
         uses: anchore/sbom-action@v0
         with:
-          image: ghcr.io/${{ github.repository }}/ssh-hunt:sha-${{ github.sha }}
+          image: ${{ steps.primary_tag.outputs.tag }}
           output-file: sbom.spdx.json
 
       - name: Attest build provenance
         uses: actions/attest-build-provenance@v1
         with:
-          subject-name: ghcr.io/${{ github.repository }}/ssh-hunt
+          subject-name: ${{ steps.image.outputs.name }}
           subject-digest: ${{ steps.build.outputs.digest }}
           push-to-registry: true
 
