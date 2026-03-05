@@ -252,6 +252,8 @@ make down
 make ps
 make logs
 make restart
+make doctor
+make firewall-open-24444
 make db-migrate
 make db-seed
 make test
@@ -306,6 +308,15 @@ Service not reachable:
 - confirm `make ps` shows healthy containers,
 - verify host port with `ss -ltnp | rg 24444`,
 - check game logs with `make logs`.
+- run `make doctor` for a one-shot local health summary.
+- run `make firewall-open-24444` to open `24444/tcp` in all firewalld zones.
+
+`Connection refused` specifically usually means no listener at that moment.
+Most common causes:
+
+- containers are stopped,
+- compose startup failed (for example missing `.env`),
+- host listener exists but external NAT/port-forward path is disabled.
 
 NetCity still locked:
 

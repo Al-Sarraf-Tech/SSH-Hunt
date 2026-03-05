@@ -30,6 +30,12 @@ sudo firewall-cmd --permanent --add-port=24444/tcp
 sudo firewall-cmd --reload
 ```
 
+Repo helper target (opens `24444/tcp` in all firewalld zones):
+
+```bash
+make firewall-open-24444
+```
+
 ## Runtime Secret Configuration
 
 Set super-admin mapping in:
@@ -75,6 +81,7 @@ make db-migrate
 ```bash
 make ps
 make logs
+make doctor
 ```
 
 ## Hardening Recommendations
