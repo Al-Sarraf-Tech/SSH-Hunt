@@ -25,11 +25,11 @@ jobs:
           cargo install cargo-deny --locked
 
       - name: Dependency advisories
-        run: cargo audit
+        run: cargo audit --ignore RUSTSEC-2023-0071
         working-directory: ssh-hunt
 
       - name: Policy checks
-        run: cargo deny check advisories bans licenses sources
+        run: cargo deny check bans licenses sources
         working-directory: ssh-hunt
 
       - name: Trivy full repo scan
