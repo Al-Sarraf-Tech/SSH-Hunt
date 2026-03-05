@@ -75,6 +75,6 @@ jobs:
           sarif_file: trivy-fs.sarif
 
       - name: OSV scanner
-        uses: google/osv-scanner-action/osv-scanner-action@v1
+        uses: google/osv-scanner-action/osv-scanner-action@v2.3.3
         with:
           scan-args: -r .

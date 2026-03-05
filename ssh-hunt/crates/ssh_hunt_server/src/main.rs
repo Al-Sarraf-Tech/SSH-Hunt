@@ -339,17 +339,19 @@ impl GameSession {
             }
         }
 
-        if let Some((pipeline_depth, unique_tools)) = parsed.as_ref().and_then(style_metrics) {
-            if let Some(player_id) = self.player_id {
-                let reward = self
-                    .app
-                    .world
-                    .style_bonus(player_id, pipeline_depth, unique_tools)
-                    .await?;
-                if reward > 0 {
-                    combined.push_str(&format!(
-                        "[style bonus] +{reward} Neon Chips (chain={pipeline_depth}, tools={unique_tools})\n"
-                    ));
+        if res.exit_code == 0 {
+            if let Some((pipeline_depth, unique_tools)) = parsed.as_ref().and_then(style_metrics) {
+                if let Some(player_id) = self.player_id {
+                    let reward = self
+                        .app
+                        .world
+                        .style_bonus(player_id, pipeline_depth, unique_tools)
+                        .await?;
+                    if reward > 0 {
+                        combined.push_str(&format!(
+                            "[style bonus] +{reward} Neon Chips (chain={pipeline_depth}, tools={unique_tools})\n"
+                        ));
+                    }
                 }
             }
         }
