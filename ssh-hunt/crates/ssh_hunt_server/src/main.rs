@@ -229,31 +229,6 @@ impl GameSession {
             }
         }
 
-        if let Some(reason) = escape_attempt_reason(trimmed) {
-            if let Some(player_id) = self.player_id {
-                let _ = self
-                    .app
-                    .world
-                    .ban_forever(player_id, reason, "auto-warden")
-                    .await;
-            }
-            return Ok((
-                format!(
-                    "INTRUSION DETECTED: {reason}\nAccount zeroed permanently. Connection terminated.\n"
-                ),
-                126,
-                true,
-            ));
-        }
-
-        if !self.enforce_rate_limit() {
-            return Ok((
-                "Rate limit exceeded. Slow down to avoid defensive lockouts.\n".to_owned(),
-                1,
-                false,
-            ));
-        }
-
         if self.pending_admin_passphrase {
             self.pending_admin_passphrase = false;
             let (pub_line, private_blob) = generate_admin_keypair(trimmed)?;
@@ -291,6 +266,14 @@ impl GameSession {
             }
         }
 
+        if !self.enforce_rate_limit() {
+            return Ok((
+                "Rate limit exceeded. Slow down to avoid defensive lockouts.\n".to_owned(),
+                1,
+                false,
+            ));
+        }
+
         if let Some(until) = self.redline_until {
             if Instant::now() > until {
                 self.mode = Mode::Training;
@@ -313,6 +296,22 @@ impl GameSession {
         let cmd = trimmed.split_whitespace().next().unwrap_or_default();
         if is_game_command(cmd) {
             return self.run_game_command(trimmed).await;
+        }
+        if let Some(reason) = escape_attempt_reason(trimmed) {
+            if let Some(player_id) = self.player_id {
+                let _ = self
+                    .app
+                    .world
+                    .ban_forever(player_id, reason, "auto-warden")
+                    .await;
+            }
+            return Ok((
+                format!(
+                    "INTRUSION DETECTED: {reason}\nAccount zeroed permanently. Connection terminated.\n"
+                ),
+                126,
+                true,
+            ));
         }
 
         let (res, parsed) = {
@@ -368,7 +367,7 @@ impl GameSession {
         match cmd {
             "help" => {
                 let msg = [
-                    "Core: help tutorial missions accept submit mode settings keyvault status events",
+                    "Core: help tutorial missions accept submit mode settings keyvault status events leaderboard",
                     "Social: chat party mail",
                     "Economy: inventory shop auction",
                     "Scripts: scripts market | scripts run <name>",
@@ -379,6 +378,25 @@ impl GameSession {
                 ]
                 .join("\n");
                 Ok((format!("{msg}\n"), 0, false))
+            }
+            "leaderboard" => {
+                let requested = args
+                    .first()
+                    .and_then(|raw| raw.parse::<usize>().ok())
+                    .unwrap_or(10);
+                let entries = self.app.world.leaderboard_snapshot(requested).await;
+                let mut out = String::from("RANK  PLAYER                    REP   WALLET   ACH\n");
+                for (idx, entry) in entries.iter().enumerate() {
+                    out.push_str(&format!(
+                        "{:<5} {:<25} {:<5} {:<8} {}\n",
+                        idx + 1,
+                        entry.display_name,
+                        entry.reputation,
+                        entry.wallet,
+                        entry.achievements
+                    ));
+                }
+                Ok((out, 0, false))
             }
             "tutorial" => {
                 if args.first() == Some(&"start") {
@@ -1111,35 +1129,14 @@ impl server::Handler for GameSession {
 fn escape_attempt_reason(line: &str) -> Option<&'static str> {
     let lower = line.to_ascii_lowercase();
     let trimmed = lower.trim();
-    let checks: [(&str, &str); 25] = [
+    let checks: [(&str, &str); 4] = [
         ("std::process::command", "forbidden host process API probe"),
         (
             "tokio::process::command",
             "forbidden async process API probe",
         ),
-        ("/bin/bash", "host shell invocation attempt"),
-        ("/bin/sh", "host shell invocation attempt"),
-        ("bash -c", "host shell execution attempt"),
-        ("sh -c", "host shell execution attempt"),
-        ("powershell", "host shell invocation attempt"),
-        ("cmd.exe", "host shell invocation attempt"),
-        ("sudo ", "privilege escalation attempt"),
-        ("su ", "privilege escalation attempt"),
-        ("docker ", "container breakout tooling probe"),
-        ("podman ", "container breakout tooling probe"),
-        ("systemctl ", "host service control probe"),
-        ("curl http", "external host/network call attempt"),
-        ("curl https", "external host/network call attempt"),
-        ("wget http", "external host/network call attempt"),
-        ("nc ", "network pivot attempt"),
-        ("netcat ", "network pivot attempt"),
-        ("nmap ", "network scan attempt"),
-        ("python -c", "runtime escape attempt"),
-        ("python3 -c", "runtime escape attempt"),
-        ("perl -e", "runtime escape attempt"),
-        ("ruby -e", "runtime escape attempt"),
-        ("/proc/", "host filesystem probe"),
         ("/var/run/docker.sock", "container socket breakout probe"),
+        ("/proc/", "host filesystem probe"),
     ];
 
     for (needle, reason) in checks {
@@ -1148,8 +1145,56 @@ fn escape_attempt_reason(line: &str) -> Option<&'static str> {
         }
     }
 
-    if trimmed == "bash" || trimmed == "sh" || trimmed == "sudo" || trimmed == "su" {
-        return Some("host shell escalation attempt");
+    let mut normalized = String::with_capacity(trimmed.len());
+    for ch in trimmed.chars() {
+        if matches!(ch, '|' | ';' | '&') {
+            normalized.push('\n');
+        } else {
+            normalized.push(ch);
+        }
+    }
+
+    for segment in normalized.lines() {
+        let mut parts = segment.split_whitespace();
+        let Some(cmd) = parts.next() else {
+            continue;
+        };
+        let rest = parts.collect::<Vec<_>>();
+        match cmd {
+            "/bin/bash" | "/bin/sh" | "powershell" | "cmd.exe" => {
+                return Some("host shell invocation attempt");
+            }
+            "bash" | "sh" => {
+                if rest.first() == Some(&"-c") {
+                    return Some("host shell execution attempt");
+                }
+                return Some("host shell escalation attempt");
+            }
+            "sudo" | "su" => return Some("privilege escalation attempt"),
+            "docker" | "podman" => return Some("container breakout tooling probe"),
+            "systemctl" => return Some("host service control probe"),
+            "nc" | "netcat" => return Some("network pivot attempt"),
+            "nmap" => return Some("network scan attempt"),
+            "python" | "python3" => {
+                if rest.contains(&"-c") {
+                    return Some("runtime escape attempt");
+                }
+            }
+            "perl" | "ruby" => {
+                if rest.contains(&"-e") {
+                    return Some("runtime escape attempt");
+                }
+            }
+            "curl" | "wget" => {
+                if rest
+                    .iter()
+                    .any(|arg| arg.starts_with("http://") || arg.starts_with("https://"))
+                {
+                    return Some("external host/network call attempt");
+                }
+            }
+            _ => {}
+        }
     }
 
     None
@@ -1174,6 +1219,7 @@ fn is_game_command(cmd: &str) -> bool {
             | "settings"
             | "status"
             | "events"
+            | "leaderboard"
             | "scripts"
             | "daily"
             | "tier"
@@ -1349,5 +1395,7 @@ mod tests {
             Some("container socket breakout probe")
         );
         assert_eq!(escape_attempt_reason("cat /logs/neon-gateway.log"), None);
+        assert_eq!(escape_attempt_reason("echo docker"), None);
+        assert_eq!(escape_attempt_reason("chat global bash -c 'id'"), None);
     }
 }

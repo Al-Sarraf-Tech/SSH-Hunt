@@ -101,9 +101,10 @@ mode redline
 settings flash off
 ```
 
-7. PvP and difficulty tiers:
+7. PvP, rankings, and difficulty tiers:
 
 ```text
+leaderboard
 tier noob|gud|hardcore
 pvp roster
 pvp challenge <username>

@@ -199,6 +199,14 @@ pub struct WorldEventSnapshot {
     pub active: bool,
 }
 
+#[derive(Debug, Clone)]
+pub struct LeaderboardEntry {
+    pub display_name: String,
+    pub reputation: i64,
+    pub wallet: i64,
+    pub achievements: usize,
+}
+
 #[derive(Debug, Default)]
 struct WorldState {
     players: HashMap<Uuid, PlayerProfile>,
@@ -737,7 +745,8 @@ impl WorldService {
         let mut guard = self.state.write().await;
         let listing = guard
             .auctions
-            .remove(&listing_id)
+            .get(&listing_id)
+            .cloned()
             .ok_or_else(|| anyhow!("listing not found"))?;
         let buyout = listing
             .listing
@@ -753,6 +762,7 @@ impl WorldService {
             return Err(anyhow!("insufficient funds"));
         }
 
+        guard.auctions.remove(&listing_id);
         let tax = buyout * TAX_BPS / 10_000;
         if let Some(buyer_state) = guard.players.get_mut(&buyer) {
             buyer_state.wallet -= buyout;
@@ -761,6 +771,31 @@ impl WorldService {
             seller_state.wallet += buyout - tax;
         }
         Ok(())
+    }
+
+    pub async fn leaderboard_snapshot(&self, limit: usize) -> Vec<LeaderboardEntry> {
+        let guard = self.state.read().await;
+        let mut out = guard
+            .players
+            .values()
+            .filter(|p| !p.banned)
+            .map(|p| LeaderboardEntry {
+                display_name: p.display_name.clone(),
+                reputation: p.reputation,
+                wallet: p.wallet,
+                achievements: p.achievements.len(),
+            })
+            .collect::<Vec<_>>();
+
+        out.sort_by(|a, b| {
+            b.reputation
+                .cmp(&a.reputation)
+                .then_with(|| b.wallet.cmp(&a.wallet))
+                .then_with(|| b.achievements.cmp(&a.achievements))
+                .then_with(|| a.display_name.cmp(&b.display_name))
+        });
+        out.truncate(limit.clamp(1, 50));
+        out
     }
 
     pub async fn market_snapshot(&self) -> Vec<AuctionListingSnapshot> {
@@ -1376,5 +1411,51 @@ mod tests {
             .world_events_snapshot(now + Duration::minutes(30))
             .await;
         assert!(feed.iter().any(|event| event.active));
+    }
+
+    #[tokio::test]
+    async fn buyout_insufficient_funds_does_not_remove_listing() {
+        let world = service();
+        let seller = world.login("seller2", "203.0.113.31", &[]).await.unwrap();
+        let buyer = world.login("buyer2", "203.0.113.32", &[]).await.unwrap();
+
+        let listing = world
+            .create_listing(seller.id, "script.elite", 1, 120, Some(900))
+            .await
+            .unwrap();
+
+        let err = world
+            .buyout(buyer.id, listing.listing_id)
+            .await
+            .unwrap_err();
+        assert!(err.to_string().contains("insufficient funds"));
+
+        let market = world.market_snapshot().await;
+        assert!(market
+            .iter()
+            .any(|entry| entry.listing_id == listing.listing_id));
+    }
+
+    #[tokio::test]
+    async fn leaderboard_orders_and_omits_banned_players() {
+        let world = service();
+        let p1 = world.login("alpha", "203.0.113.41", &[]).await.unwrap();
+        let p2 = world.login("beta", "203.0.113.42", &[]).await.unwrap();
+        let p3 = world.login("gamma", "203.0.113.43", &[]).await.unwrap();
+
+        world.complete_mission(p1.id, "pipes-101").await.unwrap();
+        world.complete_mission(p2.id, "finder").await.unwrap();
+        world.style_bonus(p2.id, 4, 4).await.unwrap();
+        world.complete_mission(p3.id, "keys-vault").await.unwrap();
+        world.complete_mission(p3.id, "pipes-101").await.unwrap();
+        world
+            .ban_forever(p3.id, "test", "test-suite")
+            .await
+            .unwrap();
+
+        let board = world.leaderboard_snapshot(5).await;
+        assert_eq!(board.len(), 2);
+        assert!(board[0].display_name.starts_with("beta@"));
+        assert!(board[1].display_name.starts_with("alpha@"));
     }
 }
