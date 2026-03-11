@@ -21,7 +21,7 @@ jobs:
       contents: read
       pull-requests: read
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
       - name: Dependency review
         uses: actions/dependency-review-action@v4
         continue-on-error: true
@@ -49,7 +49,7 @@ jobs:
       RUST_BACKTRACE: 1
       CARGO_TERM_COLOR: always
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
 
       - name: Configure database URL
         run: echo "DATABASE_URL=postgres://ssh_hunt:ssh_hunt_dev@localhost:${{ job.services.postgres.ports['5432'] }}/ssh_hunt" >> "$GITHUB_ENV"
@@ -96,7 +96,7 @@ jobs:
           cargo tarpaulin --engine llvm --workspace --all-features --timeout 120 --out Xml
 
       - name: Upload coverage artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-report
           path: ssh-hunt/cobertura.xml
