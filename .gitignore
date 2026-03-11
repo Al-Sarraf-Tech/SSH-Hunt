@@ -16,3 +16,4 @@
 ssh-hunt/.sqlx/
 ssh-hunt/coverage/
 ssh-hunt/test-output/
+*.cdx.json

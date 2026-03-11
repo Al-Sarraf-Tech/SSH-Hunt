@@ -56,16 +56,16 @@ jobs:
       - name: Verify SBOM contains workspace crates
         working-directory: ssh-hunt
         run: |
-          sbom_file="$(find . -name "*.cdx.json" | head -1)"
-          if [ -z "$sbom_file" ]; then
-            sbom_file="$(find . -name "*.json" | head -1)"
-          fi
-          echo "Checking SBOM file: ${sbom_file}"
-          # Verify key workspace crates appear in the SBOM
-          for crate in ssh-hunt-server world shell vfs; do
-            if grep -q "$crate" "$sbom_file"; then
-              echo "  FOUND: $crate"
+          # cargo-cyclonedx in workspace mode emits one SBOM per crate under each crate dir
+          all_sbom="$(find . -name "*.cdx.json" | sort)"
+          count="$(echo "$all_sbom" | grep -c '\.cdx\.json' || true)"
+          echo "Total SBOM files generated: ${count}"
+          echo "$all_sbom"
+          # Verify each key workspace crate has its own SBOM file
+          for crate in ssh_hunt_server world shell vfs; do
+            if echo "$all_sbom" | grep -q "$crate"; then
+              echo "  FOUND SBOM: $crate"
             else
-              echo "  WARNING: $crate not found in SBOM"
+              echo "  WARNING: no SBOM found for $crate"
             fi
           done
