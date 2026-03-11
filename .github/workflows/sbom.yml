@@ -35,7 +35,7 @@ jobs:
       - name: Generate CycloneDX SBOM
         working-directory: ssh-hunt
         run: |
-          cargo cyclonedx --format json --spec-version 1.4 --output-cdx --output-prefix sbom
+          cargo cyclonedx --format json --spec-version 1.4 --output-prefix sbom
           ls -lh *.cdx.json || ls -lh *.json
 
       - name: Install cargo-audit
