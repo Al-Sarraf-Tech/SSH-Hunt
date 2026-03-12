@@ -16,7 +16,7 @@ jobs:
   docker:
     runs-on: ${{ fromJSON(vars.SSH_HUNT_RUNNER_LABELS != '' && vars.SSH_HUNT_RUNNER_LABELS || '["ubuntu-latest"]') }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Compute image name
         id: image
