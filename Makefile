@@ -103,7 +103,11 @@ firewall-status:
 
 doctor:
 	@echo "== Compose status =="
-	@$(COMPOSE) ps
+	@if docker info >/dev/null 2>&1; then \
+		$(COMPOSE) ps; \
+	else \
+		echo "docker daemon unavailable or inaccessible; skipping compose status"; \
+	fi
 	@echo ""
 	@echo "== Listener check (:24444) =="
 	@ss -ltnp | grep ':24444' || true
