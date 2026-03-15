@@ -1499,6 +1499,47 @@ pub fn default_registry() -> BuiltinRegistry {
         CommandResult::ok(String::new())
     });
 
+    // history — show command history from the session VFS file
+    reg.register("history", |ctx, args, _| {
+        match ctx.vfs.read_file("/", "/tmp/.history") {
+            Ok(content) => {
+                let lines: Vec<&str> = content.lines().collect();
+                let n = parse_n_flag(args, lines.len());
+                let start = lines.len().saturating_sub(n);
+                let out: String = lines[start..]
+                    .iter()
+                    .map(|l| format!("{l}\n"))
+                    .collect();
+                CommandResult::ok(out)
+            }
+            Err(_) => CommandResult::ok("No history yet.\n".to_owned()),
+        }
+    });
+
+    // clear — emit ANSI clear sequence
+    reg.register("clear", |_ctx, _args, _| {
+        CommandResult::ok("\x1b[2J\x1b[H".to_owned())
+    });
+
+    // uptime — simulated uptime
+    reg.register("uptime", |_ctx, _args, _| {
+        CommandResult::ok(
+            " 14:22:07 up 3 days, 7:14,  1 user,  load average: 0.42, 0.31, 0.28\n".to_owned(),
+        )
+    });
+
+    // rev — reverse lines
+    reg.register("rev", |_ctx, _args, stdin| {
+        let out: String = stdin
+            .lines()
+            .map(|l| {
+                let reversed: String = l.chars().rev().collect();
+                format!("{reversed}\n")
+            })
+            .collect();
+        CommandResult::ok(out)
+    });
+
     reg
 }
 

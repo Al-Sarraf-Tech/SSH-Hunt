@@ -13,7 +13,7 @@ Mode transitions display text + color shift banners.
 - Navigation/files: `ls`, `cd`, `pwd`, `cat`, `less`, `head`, `tail`, `touch`, `mkdir`, `rm`, `cp`, `mv`
 - Text: `echo`, `printf`, `grep`, `find`, `sort`, `uniq`, `wc`, `cut`, `tr`, bounded `sed`, bounded `awk`
 - Simulated system: `ps`, `top`, `uname`, `whoami`, `id`, `df`, `free`, `ip`, `ss`
-- Game: `help`, `guide`, `tutorial`, `missions`, `accept`, `submit`, `inventory`, `shop`, `auction`, `chat`, `mail`, `party`, `mode`, `gate`, `keyvault`, `settings`, `status`, `events`, `leaderboard`, `scripts`
+- Game: `help`, `guide`, `briefing`, `tutorial`, `missions`, `accept`, `submit`, `inventory`, `shop`, `auction`, `chat`, `mail`, `party`, `mode`, `gate`, `keyvault`, `settings`, `status`, `events`, `leaderboard`, `scripts`
 
 ## Tutorial and Missions
 
@@ -23,10 +23,17 @@ Run:
 
 ```text
 guide
+guide shell
+briefing
 tutorial start
 ```
 
-It teaches prompt structure, variables, pipes, redirection, and mission loop.
+It teaches prompt structure, core file navigation, pipes, redirection, and mission loop.
+The sim also seeds in-world help files you can read with normal shell commands:
+
+- `/missions/rookie-ops.txt`
+- `/missions/story-so-far.txt`
+- `/data/lore/ghost-rail-dossier.txt`
 
 ### Mission 0: KEYS VAULT
 
@@ -47,6 +54,10 @@ Complete one of:
 - `redirect-lab`: `>` and `>>` file manipulation
 - `dedupe-city`: `sort | uniq` analysis
 - `finder`: safe `find` + argument chaining
+
+For mission-specific story + hints:
+
+- `briefing <mission-code>`
 
 Unlock condition for NetCity:
 

@@ -10,7 +10,7 @@ services:
       - .env.runner
     environment:
       RUNNER_SCOPE: repo
-      RUNNER_WORKDIR: /tmp/runner/work
+      RUNNER_WORKDIR: /gha-work/ssh-hunt
       RUNNER_EPHEMERAL: ${RUNNER_EPHEMERAL:-false}
       RUNNER_NAME: ${RUNNER_NAME:-ssh-hunt-runner-01}
       RUN_AS_ROOT: "false"
@@ -20,7 +20,7 @@ services:
       - "${RUNNER_DOCKER_GID:-976}"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./volumes/gh-runner:/tmp/runner
+      - /gha-work/ssh-hunt:/gha-work/ssh-hunt
     security_opt:
       - no-new-privileges:true
 
@@ -35,7 +35,7 @@ services:
       - .env.runner
     environment:
       RUNNER_SCOPE: repo
-      RUNNER_WORKDIR: /tmp/runner/work
+      RUNNER_WORKDIR: /gha-work/ssh-hunt
       RUNNER_EPHEMERAL: true
       RUNNER_NAME: ${RUNNER_NAME_PREFIX:-ssh-hunt-runner}-ephemeral-1
       RUN_AS_ROOT: "false"
@@ -45,7 +45,7 @@ services:
       - "${RUNNER_DOCKER_GID:-976}"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./volumes/gh-runner-ephemeral-1:/tmp/runner
+      - /gha-work/ssh-hunt-eph-1:/gha-work/ssh-hunt
     security_opt:
       - no-new-privileges:true
 
@@ -60,7 +60,7 @@ services:
       - .env.runner
     environment:
       RUNNER_SCOPE: repo
-      RUNNER_WORKDIR: /tmp/runner/work
+      RUNNER_WORKDIR: /gha-work/ssh-hunt
       RUNNER_EPHEMERAL: true
       RUNNER_NAME: ${RUNNER_NAME_PREFIX:-ssh-hunt-runner}-ephemeral-2
       RUN_AS_ROOT: "false"
@@ -70,7 +70,7 @@ services:
       - "${RUNNER_DOCKER_GID:-976}"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./volumes/gh-runner-ephemeral-2:/tmp/runner
+      - /gha-work/ssh-hunt-eph-2:/gha-work/ssh-hunt
     security_opt:
       - no-new-privileges:true
 
@@ -85,7 +85,7 @@ services:
       - .env.runner
     environment:
       RUNNER_SCOPE: repo
-      RUNNER_WORKDIR: /tmp/runner/work
+      RUNNER_WORKDIR: /gha-work/ssh-hunt
       RUNNER_EPHEMERAL: true
       RUNNER_NAME: ${RUNNER_NAME_PREFIX:-ssh-hunt-runner}-ephemeral-3
       RUN_AS_ROOT: "false"
@@ -95,7 +95,7 @@ services:
       - "${RUNNER_DOCKER_GID:-976}"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./volumes/gh-runner-ephemeral-3:/tmp/runner
+      - /gha-work/ssh-hunt-eph-3:/gha-work/ssh-hunt
     security_opt:
       - no-new-privileges:true
 
@@ -110,7 +110,7 @@ services:
       - .env.runner
     environment:
       RUNNER_SCOPE: repo
-      RUNNER_WORKDIR: /tmp/runner/work
+      RUNNER_WORKDIR: /gha-work/ssh-hunt
       RUNNER_EPHEMERAL: true
       RUNNER_NAME: ${RUNNER_NAME_PREFIX:-ssh-hunt-runner}-ephemeral-4
       RUN_AS_ROOT: "false"
@@ -120,6 +120,6 @@ services:
       - "${RUNNER_DOCKER_GID:-976}"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./volumes/gh-runner-ephemeral-4:/tmp/runner
+      - /gha-work/ssh-hunt-eph-4:/gha-work/ssh-hunt
     security_opt:
       - no-new-privileges:true

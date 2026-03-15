@@ -100,9 +100,15 @@ pub fn mode_switch_banner(from: Mode, to: Mode) -> String {
 
 pub fn lore_message(mode: Mode) -> &'static str {
     match mode {
-        Mode::Training => "Welcome to CorpSim Onboarding. This simulation recruits real hunters.",
-        Mode::NetCity => "NetCity is live. Megacorps are watching. Keep your traces cold.",
-        Mode::Redline => "REDLINE active. Five minutes. One breach window. No hesitation.",
+        Mode::Training => {
+            "Welcome to CorpSim Onboarding. Ghost Rail is dark, vault-sat-9 is silent, and your tutorial data is pulled from the live outage."
+        }
+        Mode::NetCity => {
+            "NetCity is live. Every district wants the blackout story first, so keep your traces cold and your answers cleaner than the corps."
+        }
+        Mode::Redline => {
+            "REDLINE active. Five minutes. One breach window. Every trace you leave becomes part of the case file."
+        }
     }
 }
 

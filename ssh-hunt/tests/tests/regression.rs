@@ -149,6 +149,38 @@ async fn advanced_missions_exist_in_mission_list() {
 }
 
 #[tokio::test]
+async fn mission_statuses_include_beginner_metadata_and_order() {
+    let world = bare_world();
+    let player = world
+        .login("briefing-check", "203.0.113.83", &[])
+        .await
+        .unwrap();
+    let missions = world.mission_statuses(player.id).await.unwrap();
+
+    assert_eq!(
+        missions.first().map(|m| m.code.as_str()),
+        Some("keys-vault")
+    );
+
+    let pipes = missions
+        .iter()
+        .find(|mission| mission.code == "pipes-101")
+        .expect("pipes-101 present");
+    assert!(
+        pipes.starter,
+        "starter flag should be exposed to the client"
+    );
+    assert!(
+        pipes.summary.contains("piping") || pipes.summary.contains("pipe"),
+        "starter missions should carry a beginner-facing summary"
+    );
+    assert!(
+        pipes.suggested_command.contains("grep token"),
+        "starter missions should carry a concrete first command"
+    );
+}
+
+#[tokio::test]
 async fn advanced_mission_gives_twenty_reputation() {
     let world = bare_world();
     let player = world.login("adv-rep", "203.0.113.81", &[]).await.unwrap();
@@ -2432,7 +2464,7 @@ async fn world_has_twelve_script_market_entries() {
         world.complete_mission(p.id, code).await.unwrap();
     }
     let refreshed = world.get_player(p.id).await.unwrap();
-    assert_eq!(refreshed.reputation, 240, "12 advanced × 20 rep = 240");
+    assert_eq!(refreshed.reputation, 300, "15 advanced × 20 rep = 300");
 }
 
 // ── Round 5: tr range expansion ───────────────────────────────────────────────
@@ -2879,13 +2911,13 @@ fn shell_column_table_mode() {
 async fn world_has_fifteen_total_missions() {
     let world = bare_world();
     let p = world.login("adv-test", "203.0.113.1", &[]).await.unwrap();
-    // Complete all 12 advanced codes (world service accepts them directly)
+    // Complete all 15 advanced codes (world service accepts them directly)
     for code in world::ADVANCED_CODES {
         world.complete_mission(p.id, code).await.unwrap();
     }
     let refreshed = world.get_player(p.id).await.unwrap();
-    // 12 advanced missions × 20 rep each = 240
-    assert_eq!(refreshed.reputation, 240);
+    // 15 advanced missions × 20 rep each = 300
+    assert_eq!(refreshed.reputation, 300);
 }
 
 #[tokio::test]

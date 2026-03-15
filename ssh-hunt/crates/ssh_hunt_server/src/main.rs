@@ -53,6 +53,11 @@ struct ShellState {
     node: String,
     env: HashMap<String, String>,
     last_exit: i32,
+    /// Command history for the current session (newest last).
+    history: Vec<String>,
+    /// Tracks which commands the player has successfully executed (for mission validation).
+    /// Maps command prefix → last stdout output.
+    command_log: HashMap<String, String>,
 }
 
 impl ShellState {
@@ -64,13 +69,30 @@ impl ShellState {
         let _ = vfs.mkdir_p("/", "missions", "system");
         let _ = vfs.mkdir_p("/", "home/player", "player");
         let _ = vfs.mkdir_p("/", "data", "system");
+        let _ = vfs.mkdir_p("/", "data/lore", "system");
         let _ = vfs.mkdir_p("/", "data/reports", "system");
         let _ = vfs.mkdir_p("/", "var/spool", "system");
 
         let _ = vfs.write_file(
             "/",
             "/missions/readme.txt",
-            "Run: tutorial start\nThen: missions\n",
+            "RUN ORDER\n1. tutorial start\n2. briefing\n3. missions\n4. accept keys-vault\n5. cat /missions/rookie-ops.txt\n\nIN-WORLD FILES\n- /missions/rookie-ops.txt\n- /missions/story-so-far.txt\n- /data/lore/ghost-rail-dossier.txt\n",
+            false,
+            "system",
+        );
+
+        let _ = vfs.write_file(
+            "/",
+            "/missions/rookie-ops.txt",
+            "ROOKIE FIELD GUIDE\npwd                         -> show where you are\nls /logs                    -> list available files\ncat FILE                    -> read a file\ngrep token FILE             -> show only matching lines\ncat FILE | grep token       -> send one command into the next\ngrep token FILE > /tmp/out  -> save output to a scratch file\necho $?                     -> show whether the last command worked (0 means success)\n\nIf a long command feels confusing, run the left part first, then add the next piece.\n",
+            false,
+            "system",
+        );
+
+        let _ = vfs.write_file(
+            "/",
+            "/missions/story-so-far.txt",
+            "Three nights ago Ghost Rail lost sync with the rest of NetCity.\nCorpSim calls this place a training sim, but the logs say the outage is real.\nA repeated beacon, GLASS-AXON-13, keeps surfacing in gateway traffic.\nVault-sat-9 went dark minutes later.\nYour onboarding contract is simple: learn the shell, secure your own access key, and rebuild the story before the corps rewrite it for you.\n",
             false,
             "system",
         );
@@ -120,6 +142,30 @@ impl ShellState {
             "system",
         );
 
+        let _ = vfs.write_file(
+            "/",
+            "/data/lore/ghost-rail-dossier.txt",
+            "GHOST RAIL DOSSIER\nSector role: freight, relays, maintenance crews\nIncident: cascading outage after unauthorized key use\nLast clean signal: token GLASS-AXON-13 observed on neon-gateway\nPrimary concern: vault-sat-9 remains offline after the rail blackout\nUnofficial note: recruits who solve the training board are being folded into the live repair effort\n",
+            false,
+            "system",
+        );
+
+        let _ = vfs.write_file(
+            "/",
+            "/data/lore/field-manual.txt",
+            "FIELD MANUAL // SHELL HABITS\n- Read first, modify second.\n- Save scratch output under /tmp when you want to inspect it later.\n- Build long pipelines in pieces.\n- grep narrows data. wc counts it. sort and uniq clean it.\n- When you get lost, run pwd, then ls.\n",
+            false,
+            "system",
+        );
+
+        let _ = vfs.write_file(
+            "/",
+            "/data/lore/netcity-fragment.txt",
+            "NETCITY FRAGMENT\nThe market districts think Ghost Rail was sabotage.\nThe security districts think it was an inside key leak.\nThe couriers think CorpSim already knows the answer and is training replacements before the blame lands.\n",
+            false,
+            "system",
+        );
+
         // cut-lab mission: tab-delimited inventory for field extraction
         let _ = vfs.write_file(
             "/",
@@ -158,6 +204,14 @@ impl ShellState {
             "/",
             "/home/player/notes.txt",
             "# Operative Notes\nTarget: vault-sat-9\nStatus: offline\nNext step: check ghost-rail sector logs\nTip: use grep -i for case-insensitive search\n",
+            false,
+            "player",
+        );
+
+        let _ = vfs.write_file(
+            "/",
+            "/home/player/journal.txt",
+            "DAY 0 // FIRST LOGIN\nCorpSim says onboarding.\nThe files say emergency response.\nStart with /missions/rookie-ops.txt if your shell muscle memory is rusty.\nIf you want the bigger picture, read /missions/story-so-far.txt and /data/lore/ghost-rail-dossier.txt.\n",
             false,
             "player",
         );
@@ -233,6 +287,76 @@ impl ShellState {
             "system",
         );
 
+        // deep-pipeline mission: blackbox log with mixed severity and sectors
+        let _ = vfs.write_file(
+            "/",
+            "/logs/blackbox.log",
+            "2084-03-12T08:14:22 INFO sector-3 heartbeat normal\n\
+             2084-03-12T08:14:23 WARN sector-7 latency spike detected\n\
+             2084-03-12T08:14:24 CRITICAL sector-7 vault-sat-9 unreachable\n\
+             2084-03-12T08:14:25 INFO sector-1 routine sweep pass\n\
+             2084-03-12T08:14:26 CRITICAL sector-7 failover timeout exceeded\n\
+             2084-03-12T08:14:27 ERROR sector-4 relay buffer overflow\n\
+             2084-03-12T08:14:28 CRITICAL sector-7 encrypted tunnel collapsed\n\
+             2084-03-12T08:14:29 WARN sector-2 backup power fluctuation\n\
+             2084-03-12T08:14:30 CRITICAL sector-9 signal intercept detected\n\
+             2084-03-12T08:14:31 INFO sector-7 recovery attempt initiated\n\
+             2084-03-12T08:14:32 CRITICAL sector-7 recovery failed — no quorum\n\
+             2084-03-12T08:14:33 ERROR sector-7 cascade failure propagating\n\
+             2084-03-12T08:14:34 CRITICAL sector-3 secondary relay offline\n\
+             2084-03-12T08:14:35 CRITICAL sector-7 all nodes dark\n",
+            false,
+            "system",
+        );
+
+        // log-forensics mission: add IPs to auth.log and access.log entries
+        // (The existing files have entries; we add IP-bearing lines for cross-referencing)
+        let _ = vfs.write_file(
+            "/",
+            "/var/log/auth-ips.log",
+            "ACCEPT user=admin src=10.0.7.11 port=22\n\
+             REJECT user=root src=10.0.9.44 port=22\n\
+             REJECT user=admin src=10.0.7.11 port=22\n\
+             ACCEPT user=deploy src=10.0.3.8 port=22\n\
+             REJECT user=scanner src=10.0.5.22 port=22\n\
+             REJECT user=root src=10.0.9.44 port=22\n\
+             REJECT user=probe src=10.0.7.11 port=22\n",
+            false,
+            "system",
+        );
+        let _ = vfs.write_file(
+            "/",
+            "/logs/access-ips.log",
+            "ALLOW path=/api/health src=10.0.3.8\n\
+             DENY path=/admin/keys src=10.0.7.11\n\
+             ALLOW path=/api/status src=10.0.1.5\n\
+             DENY path=/vault/unlock src=10.0.9.44\n\
+             DENY path=/admin/config src=10.0.7.11\n\
+             ALLOW path=/api/health src=10.0.2.3\n\
+             DENY path=/vault/dump src=10.0.5.22\n",
+            false,
+            "system",
+        );
+
+        // data-transform mission: supply manifest CSV
+        let _ = vfs.write_file(
+            "/",
+            "/data/supply-manifest.csv",
+            "id,item,quantity,status\n\
+             1,power-cells,847,available\n\
+             2,relay-boards,23,critical\n\
+             3,fiber-cables,1200,available\n\
+             4,cooling-units,5,critical\n\
+             5,backup-drives,312,available\n\
+             6,encryption-chips,89,low\n\
+             7,antenna-arrays,42,low\n\
+             8,shielding-plates,1500,available\n\
+             9,servo-motors,15,critical\n\
+             10,display-panels,200,available\n",
+            false,
+            "system",
+        );
+
         let cwd = "/home/player".to_owned();
         let node = "corp-sim-01".to_owned();
         let mut env = HashMap::new();
@@ -249,6 +373,8 @@ impl ShellState {
             node,
             env,
             last_exit: 0,
+            history: Vec::new(),
+            command_log: HashMap::new(),
         }
     }
 
@@ -492,6 +618,23 @@ impl GameSession {
                 .ok_or_else(|| anyhow!("session shell unavailable"))?;
             let parsed = self.app.shell.parse(trimmed, &shell.env).ok();
             let res = shell.execute_shell(&self.app.shell, trimmed)?;
+            // Record command history and output for mission validation
+            shell.history.push(trimmed.to_owned());
+            if shell.history.len() > 500 {
+                shell.history.remove(0);
+            }
+            if res.exit_code == 0 && !res.stdout.is_empty() {
+                shell.command_log.insert(trimmed.to_owned(), res.stdout.clone());
+            }
+            // Write history to VFS so the `history` builtin can read it
+            let hist_content = shell
+                .history
+                .iter()
+                .enumerate()
+                .map(|(i, cmd)| format!("  {}  {}", i + 1, cmd))
+                .collect::<Vec<_>>()
+                .join("\n");
+            let _ = shell.vfs.write_file("/", "/tmp/.history", &hist_content, false, "system");
             (res, parsed)
         };
 
@@ -540,11 +683,11 @@ impl GameSession {
                 let theme = Theme::for_mode(self.mode.clone());
                 let mut out = self.render_section_banner("COMMAND MATRIX");
                 out.push_str(&format!(
-                    "{}Quickstart{} tutorial start -> missions -> gate -> mode netcity\n",
+                    "{}Quickstart{} tutorial start -> briefing -> missions -> gate -> mode netcity\n",
                     theme.accent, RESET
                 ));
                 out.push('\n');
-                out.push_str("Core      help guide tutorial missions accept submit mode gate keyvault status events leaderboard daily tier\n");
+                out.push_str("Core      help guide briefing tutorial missions accept submit mode gate keyvault status events leaderboard daily tier\n");
                 out.push_str("Social    chat party mail\n");
                 out.push_str("Economy   inventory shop auction\n");
                 out.push_str("Scripts   scripts market | scripts run <name>\n");
@@ -557,16 +700,34 @@ impl GameSession {
                 out.push_str("  - Host escape/probing attempts = PERMA-ZERO + disconnect\n");
                 out.push('\n');
                 out.push_str("Need step-by-step onboarding? Run: guide\n");
+                out.push_str("Need bash fundamentals? Run: guide shell\n");
+                out.push_str("Need story + mission hints? Run: briefing [mission-code]\n");
                 Ok((out, 0, false))
             }
             "guide" => {
                 if args.is_empty() || args.first() == Some(&"quick") {
                     return Ok((self.quickstart_guide(), 0, false));
                 }
+                if matches!(args.first(), Some(&"shell") | Some(&"bash")) {
+                    return Ok((self.shell_survival_guide(), 0, false));
+                }
                 if args.first() == Some(&"full") {
                     return Ok((self.full_gameplay_guide(), 0, false));
                 }
-                Ok(("Usage: guide [quick|full]\n".to_owned(), 1, false))
+                Ok(("Usage: guide [quick|full|shell]\n".to_owned(), 1, false))
+            }
+            "briefing" => {
+                if args.is_empty() {
+                    return Ok((self.story_briefing(), 0, false));
+                }
+
+                let code = args[0];
+                let detail = self
+                    .app
+                    .world
+                    .mission_detail_for_player(player_id, code)
+                    .await?;
+                Ok((self.render_mission_briefing(&detail), 0, false))
             }
             "gate" => {
                 let gate = self
@@ -624,13 +785,29 @@ impl GameSession {
                     let mut out = self.render_section_banner("TUTORIAL START");
                     out.push_str("Prompt format: <username>@<node>:/path$\n");
                     out.push('\n');
-                    out.push_str("Command chain drills\n");
+                    out.push_str("Shell basics\n");
+                    out.push_str("  pwd                         # where am I?\n");
+                    out.push_str("  ls /logs                    # what files exist?\n");
+                    out.push_str("  cat /logs/neon-gateway.log  # read a file\n");
+                    out.push('\n');
+                    out.push_str("Beginner drills\n");
                     out.push_str("  cat /logs/neon-gateway.log | grep token | wc -l\n");
                     out.push_str("  grep token /logs/neon-gateway.log > /tmp/tokens.txt\n");
+                    out.push_str("  cat /tmp/tokens.txt\n");
                     out.push('\n');
                     out.push_str("KEYS VAULT mission (required)\n");
                     out.push_str("  ssh-keygen -t ed25519 -a 64 -f ~/.ssh/ssh-hunt_ed25519\n");
                     out.push_str("  keyvault register\n");
+                    out.push('\n');
+                    out.push_str("Story hook\n");
+                    out.push_str("  Ghost Rail went dark, vault-sat-9 stopped answering, and the beacon GLASS-AXON-13 is still repeating.\n");
+                    out.push_str("  Read more with: briefing\n");
+                    out.push_str("  Learn the shell with: guide shell\n");
+                    out.push('\n');
+                    out.push_str("In-world help files\n");
+                    out.push_str("  cat /missions/rookie-ops.txt\n");
+                    out.push_str("  cat /missions/story-so-far.txt\n");
+                    out.push_str("  cat /home/player/journal.txt\n");
                     out.push('\n');
                     out.push_str("Host breakout/probing attempts are auto-zeroed permanently.\n");
                     out.push_str("Complete one starter mission to unlock NetCity.\n");
@@ -642,20 +819,24 @@ impl GameSession {
             "missions" => {
                 let missions = self.app.world.mission_statuses(player_id).await?;
                 let mut out = self.render_section_banner("MISSION BOARD");
-                out.push_str("CODE             STATE      PROG                 REQUIRED  TITLE\n");
+                out.push_str("CODE             STATE      PROG                 TRACK      TITLE\n");
                 for m in missions {
                     let badge = mission_state_badge(self.mode.clone(), &m.state);
                     let meter = progress_meter(self.mode.clone(), m.progress, 12);
+                    let track = mission_track_label(m.required, m.starter);
                     out.push_str(&format!(
-                        "{:<16} {:<10} {:>3}% {} {:<8} {}\n",
+                        "{:<16} {:<10} {:>3}% {} {:<10} {}\n",
                         m.code,
                         badge,
                         m.progress.min(100),
                         meter,
-                        if m.required { "yes" } else { "no" },
+                        track,
                         m.title
                     ));
+                    out.push_str(&format!("  Brief: {}\n", m.summary));
+                    out.push_str(&format!("  Try  : {}\n", m.suggested_command));
                 }
+                out.push_str("\nUse `briefing <mission-code>` for deeper story and shell hints.\n");
                 Ok((out, 0, false))
             }
             "accept" => {
@@ -669,6 +850,12 @@ impl GameSession {
                 let Some(code) = args.first() else {
                     return Ok(("Usage: submit <mission-code>\n".to_owned(), 1, false));
                 };
+                // Validate mission completion by checking command output log
+                if let Some(shell) = &self.shell_state {
+                    if let Err(e) = self.app.world.validate_mission(code, &shell.command_log).await {
+                        return Ok((format!("{e}\n"), 1, false));
+                    }
+                }
                 self.app.world.complete_mission(player_id, code).await?;
                 let mut out = format!("Mission completed: {code}\n");
                 if *code == "keys-vault" {
@@ -1228,14 +1415,21 @@ impl GameSession {
     fn quickstart_guide(&self) -> String {
         let mut out = self.render_section_banner("FIRST SESSION PLAYBOOK");
         out.push_str("1. tutorial start\n");
-        out.push_str("2. missions\n");
-        out.push_str("3. accept keys-vault\n");
-        out.push_str("4. keyvault register\n");
-        out.push_str("5. submit keys-vault\n");
-        out.push_str("6. accept pipes-101   (or finder|redirect-lab|log-hunt|dedupe-city)\n");
-        out.push_str("7. submit pipes-101   (or the starter mission you accepted)\n");
-        out.push_str("8. gate\n");
-        out.push_str("9. mode netcity\n");
+        out.push_str("2. guide shell          (or cat /missions/rookie-ops.txt)\n");
+        out.push_str("3. briefing\n");
+        out.push_str("4. missions\n");
+        out.push_str("5. accept keys-vault\n");
+        out.push_str("6. keyvault register\n");
+        out.push_str("7. submit keys-vault\n");
+        out.push_str("8. briefing pipes-101   (or log-hunt|dedupe-city)\n");
+        out.push_str("9. accept pipes-101     (or the starter mission you want)\n");
+        out.push_str("10. submit pipes-101    (or the starter mission you accepted)\n");
+        out.push_str("11. gate\n");
+        out.push_str("12. mode netcity\n");
+        out.push('\n');
+        out.push_str("If bash feels rusty\n");
+        out.push_str("  cat /missions/rookie-ops.txt\n");
+        out.push_str("  cat /data/lore/field-manual.txt\n");
         out.push('\n');
         out.push_str("Daily loop after unlock\n");
         out.push_str(
@@ -1250,6 +1444,9 @@ impl GameSession {
         let mut out = self.render_section_banner("GAMEPLAY GUIDE // FULL");
         out.push_str("Onboarding and unlock flow\n");
         out.push_str("  - Start tutorial: tutorial start\n");
+        out.push_str("  - Get shell basics: guide shell\n");
+        out.push_str("  - Read story + hints: briefing\n");
+        out.push_str("  - Read shell cheat sheet: cat /missions/rookie-ops.txt\n");
         out.push_str("  - Inspect board: missions\n");
         out.push_str("  - Accept required: accept keys-vault\n");
         out.push_str("  - Register key: keyvault register\n");
@@ -1257,14 +1454,27 @@ impl GameSession {
         out.push_str(
             "  - Complete one starter mission: pipes-101|finder|redirect-lab|log-hunt|dedupe-city\n",
         );
+        out.push_str("  - Get mission-specific help: briefing <mission-code>\n");
         out.push_str("  - Verify requirements: gate\n");
         out.push_str("  - Enter multiplayer: mode netcity\n");
+        out.push('\n');
+        out.push_str("Bash ramp for new players\n");
+        out.push_str("  - Read files with cat, head, tail, or less\n");
+        out.push_str("  - Use grep to filter lines by a word or pattern\n");
+        out.push_str("  - Use | to pass output to the next command\n");
+        out.push_str("  - Use > to save output, and >> to append to a file\n");
+        out.push_str("  - If a pipeline feels too long, run each step separately first\n");
         out.push('\n');
         out.push_str("Advanced missions (post-NetCity)\n");
         out.push_str("  - awk-patrol  : Extract fields from /data/node-registry.csv with awk\n");
         out.push_str("  - chain-ops   : Use && and || to chain conditional commands\n");
         out.push_str("  - sediment    : Edit /logs/access.log streams with sed\n");
         out.push_str("  Each awards 20 reputation (vs 10 for starters).\n");
+        out.push('\n');
+        out.push_str("Story frame\n");
+        out.push_str("  - Ghost Rail suffered the first blackout.\n");
+        out.push_str("  - vault-sat-9 dropped offline right after GLASS-AXON-13 surfaced.\n");
+        out.push_str("  - CorpSim is training replacements while the city argues about sabotage vs key theft.\n");
         out.push('\n');
         out.push_str("Progression systems\n");
         out.push_str("  - Status and progression: status, missions, gate, events\n");
@@ -1283,6 +1493,80 @@ impl GameSession {
         out
     }
 
+    fn shell_survival_guide(&self) -> String {
+        let mut out = self.render_section_banner("SHELL SURVIVAL GUIDE");
+        out.push_str("Read-only first steps\n");
+        out.push_str("  - pwd                      # show your current path\n");
+        out.push_str("  - ls /logs                 # inspect files before opening them\n");
+        out.push_str("  - cat /missions/story-so-far.txt\n");
+        out.push('\n');
+        out.push_str("Filter and count\n");
+        out.push_str("  - grep token /logs/neon-gateway.log\n");
+        out.push_str("  - cat /logs/neon-gateway.log | grep token | wc -l\n");
+        out.push('\n');
+        out.push_str("Save output for later\n");
+        out.push_str("  - grep WARN /logs/neon-gateway.log > /tmp/warnings.txt\n");
+        out.push_str("  - cat /tmp/warnings.txt\n");
+        out.push('\n');
+        out.push_str("Reuse values\n");
+        out.push_str("  - TARGET=vault-sat-9\n");
+        out.push_str("  - echo $TARGET\n");
+        out.push_str("  - echo $?                  # last exit code, 0 means success\n");
+        out.push('\n');
+        out.push_str("When you get stuck\n");
+        out.push_str("  - Run one command at a time before building a pipeline.\n");
+        out.push_str("  - Read /missions/rookie-ops.txt and /data/lore/field-manual.txt.\n");
+        out.push_str("  - Use briefing <mission-code> to get a mission-specific starter command.\n");
+        out
+    }
+
+    fn story_briefing(&self) -> String {
+        let mut out = self.render_section_banner("OPERATIVE BRIEFING");
+        out.push_str("Situation\n");
+        out.push_str(
+            "  Ghost Rail lost sync three nights ago. Since then, vault-sat-9 has stayed dark and a beacon named GLASS-AXON-13 keeps showing up in gateway logs.\n",
+        );
+        out.push_str(
+            "  CorpSim calls this onboarding, but every mission file in this sim is built from live cleanup traffic.\n",
+        );
+        out.push('\n');
+        out.push_str("First moves\n");
+        out.push_str("  - tutorial start\n");
+        out.push_str("  - guide shell\n");
+        out.push_str("  - cat /missions/rookie-ops.txt\n");
+        out.push_str("  - missions\n");
+        out.push_str("  - briefing pipes-101\n");
+        out.push_str("  - accept keys-vault\n");
+        out.push('\n');
+        out.push_str("Story files\n");
+        out.push_str("  - /missions/story-so-far.txt\n");
+        out.push_str("  - /data/lore/ghost-rail-dossier.txt\n");
+        out.push_str("  - /data/lore/netcity-fragment.txt\n");
+        out.push('\n');
+        out.push_str("Mission help\n");
+        out.push_str("  Use: briefing <mission-code>\n");
+        out.push_str("  Recommended starter order: pipes-101 -> log-hunt -> dedupe-city\n");
+        out
+    }
+
+    fn render_mission_briefing(&self, mission: &world::MissionDefinition) -> String {
+        let mut out = self.render_section_banner(&format!("MISSION BRIEF // {}", mission.code));
+        out.push_str(&format!("{}\n", mission.title));
+        out.push('\n');
+        out.push_str("Why it matters\n");
+        out.push_str(&format!("  {}\n", mission.story_beat));
+        out.push('\n');
+        out.push_str("What you practice\n");
+        out.push_str(&format!("  {}\n", mission.summary));
+        out.push('\n');
+        out.push_str("First command to try\n");
+        out.push_str(&format!("  {}\n", mission.suggested_command));
+        out.push('\n');
+        out.push_str("Hint\n");
+        out.push_str(&format!("  {}\n", mission.hint));
+        out
+    }
+
     fn welcome_banner(&self) -> String {
         let theme = Theme::for_mode(self.mode.clone());
         let mut out = String::new();
@@ -1292,13 +1576,16 @@ impl GameSession {
         out.push('\n');
         out.push_str(&self.render_section_banner("BOOT HUD"));
         out.push_str(&format!(
-            "{}Next{} tutorial start -> missions -> gate -> mode netcity\n",
+            "{}Next{} tutorial start -> briefing -> missions -> gate -> mode netcity\n",
             theme.accent, RESET
         ));
         out.push_str("Type `help` for the full command matrix.\n");
         out.push_str("Type `guide` for step-by-step onboarding and progression.\n");
+        out.push_str("Type `guide shell` for bash fundamentals inside the sim.\n");
+        out.push_str("Type `briefing` for the story so far and mission-specific hints.\n");
         out.push('\n');
         out.push_str(&self.quickstart_guide());
+        out.push_str("Starter files: /missions/rookie-ops.txt, /missions/story-so-far.txt\n");
         out.push_str(
             "Host breakout/probing attempts trigger permanent account zero + disconnect.\n",
         );
@@ -1784,6 +2071,7 @@ fn is_game_command(cmd: &str) -> bool {
         cmd,
         "help"
             | "guide"
+            | "briefing"
             | "tutorial"
             | "missions"
             | "accept"
@@ -1807,6 +2095,16 @@ fn is_game_command(cmd: &str) -> bool {
             | "pvp"
             | "relay"
     )
+}
+
+fn mission_track_label(required: bool, starter: bool) -> &'static str {
+    if required {
+        "required"
+    } else if starter {
+        "starter"
+    } else {
+        "advanced"
+    }
 }
 
 struct ScriptMarketEntry {
@@ -2184,5 +2482,13 @@ mod tests {
     #[test]
     fn guide_is_registered_as_game_command() {
         assert!(is_game_command("guide"));
+        assert!(is_game_command("briefing"));
+    }
+
+    #[test]
+    fn mission_track_labels_are_human_readable() {
+        assert_eq!(mission_track_label(true, false), "required");
+        assert_eq!(mission_track_label(false, true), "starter");
+        assert_eq!(mission_track_label(false, false), "advanced");
     }
 }

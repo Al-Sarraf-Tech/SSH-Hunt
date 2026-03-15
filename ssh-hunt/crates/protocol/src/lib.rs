@@ -84,6 +84,9 @@ pub struct MissionStatus {
     pub state: MissionState,
     pub progress: u8,
     pub required: bool,
+    pub starter: bool,
+    pub summary: String,
+    pub suggested_command: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

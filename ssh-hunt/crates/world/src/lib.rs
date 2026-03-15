@@ -27,7 +27,7 @@ const STARTER_CODES: [&str; 5] = [
     "dedupe-city",
 ];
 /// Post-NetCity advanced missions (unlock after completing any starter).
-pub const ADVANCED_CODES: [&str; 12] = [
+pub const ADVANCED_CODES: [&str; 15] = [
     "awk-patrol",
     "chain-ops",
     "sediment",
@@ -40,6 +40,9 @@ pub const ADVANCED_CODES: [&str; 12] = [
     "json-crack",
     "seq-master",
     "column-view",
+    "deep-pipeline",
+    "log-forensics",
+    "data-transform",
 ];
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -96,6 +99,49 @@ pub struct MissionDefinition {
     pub required: bool,
     pub starter: bool,
     pub hidden: bool,
+    pub sort_order: u16,
+    pub summary: String,
+    pub story_beat: String,
+    pub hint: String,
+    pub suggested_command: String,
+    /// Keywords that must appear in the player's command output log to validate completion.
+    /// Empty means no validation (honor system — used for keys-vault and meta missions).
+    #[serde(default)]
+    pub validation_keywords: Vec<String>,
+}
+
+impl MissionDefinition {
+    fn new(
+        code: &str,
+        title: &str,
+        required: bool,
+        starter: bool,
+        hidden: bool,
+        sort_order: u16,
+        summary: &str,
+        story_beat: &str,
+        hint: &str,
+        suggested_command: &str,
+    ) -> Self {
+        Self {
+            code: code.to_owned(),
+            title: title.to_owned(),
+            required,
+            starter,
+            hidden,
+            sort_order,
+            summary: summary.to_owned(),
+            story_beat: story_beat.to_owned(),
+            hint: hint.to_owned(),
+            suggested_command: suggested_command.to_owned(),
+            validation_keywords: Vec::new(),
+        }
+    }
+
+    fn with_validation(mut self, keywords: Vec<&str>) -> Self {
+        self.validation_keywords = keywords.into_iter().map(String::from).collect();
+        self
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -251,13 +297,18 @@ impl WorldService {
         if let Some(secret) = &hidden_ops.secret_mission {
             state.missions.insert(
                 secret.code.clone(),
-                MissionDefinition {
-                    code: secret.code.clone(),
-                    title: "Encrypted Contact Thread".to_owned(),
-                    required: false,
-                    starter: false,
-                    hidden: true,
-                },
+                MissionDefinition::new(
+                    &secret.code,
+                    "Encrypted Contact Thread",
+                    false,
+                    false,
+                    true,
+                    999,
+                    "Unlock an off-ledger contact that exists outside the public training ladder.",
+                    "Someone inside NetCity noticed how you move through the noise and opened a quiet backchannel.",
+                    "Hidden jobs appear only after deeper progression. Finish the visible path first.",
+                    "relay the signal is clean",
+                ),
             );
         }
         state.events = seed_events();
@@ -472,6 +523,34 @@ impl WorldService {
         Ok(())
     }
 
+    /// Validate that a player's command log satisfies a mission's completion criteria.
+    /// Returns Ok(()) if valid or no validation is required, Err with message otherwise.
+    pub async fn validate_mission(
+        &self,
+        code: &str,
+        command_log: &HashMap<String, String>,
+    ) -> Result<()> {
+        let guard = self.state.read().await;
+        let mission = guard
+            .missions
+            .get(code)
+            .ok_or_else(|| anyhow!("unknown mission"))?;
+        if mission.validation_keywords.is_empty() {
+            return Ok(());
+        }
+        // Check that at least one command output contains ALL validation keywords
+        let all_output: String = command_log.values().cloned().collect::<Vec<_>>().join("\n");
+        for keyword in &mission.validation_keywords {
+            if !all_output.contains(keyword.as_str()) {
+                return Err(anyhow!(
+                    "Mission not validated — your session output is missing expected results. \
+                     Run the suggested command first, then submit."
+                ));
+            }
+        }
+        Ok(())
+    }
+
     pub async fn complete_mission(&self, player_id: Uuid, code: &str) -> Result<()> {
         let mut guard = self.state.write().await;
         if !guard.missions.contains_key(code) {
@@ -540,10 +619,47 @@ impl WorldService {
                     0
                 },
                 required: mission.required,
+                starter: mission.starter,
+                summary: mission.summary.clone(),
+                suggested_command: mission.suggested_command.clone(),
             });
         }
-        statuses.sort_by(|a, b| a.code.cmp(&b.code));
+        statuses.sort_by(|a, b| {
+            let left = guard
+                .missions
+                .get(&a.code)
+                .map(|mission| mission.sort_order)
+                .unwrap_or(u16::MAX);
+            let right = guard
+                .missions
+                .get(&b.code)
+                .map(|mission| mission.sort_order)
+                .unwrap_or(u16::MAX);
+            left.cmp(&right).then_with(|| a.code.cmp(&b.code))
+        });
         Ok(statuses)
+    }
+
+    pub async fn mission_detail_for_player(
+        &self,
+        player_id: Uuid,
+        code: &str,
+    ) -> Result<MissionDefinition> {
+        let guard = self.state.read().await;
+        let player = guard
+            .players
+            .get(&player_id)
+            .ok_or_else(|| anyhow!("unknown player"))?;
+        let mission = guard
+            .missions
+            .get(code)
+            .ok_or_else(|| anyhow!("unknown mission"))?;
+
+        if mission.hidden && !self.player_can_see_hidden(&guard, player.id) {
+            return Err(anyhow!("unknown mission"));
+        }
+
+        Ok(mission.clone())
     }
 
     pub async fn netcity_gate_reason(
@@ -1142,133 +1258,260 @@ fn ensure_not_zeroed(guard: &WorldState, player_id: Uuid) -> Result<()> {
 
 fn seed_missions() -> Vec<MissionDefinition> {
     vec![
-        MissionDefinition {
-            code: KEYS_VAULT.to_owned(),
-            title: "KEYS VAULT: Secure Your Access".to_owned(),
-            required: true,
-            starter: false,
-            hidden: false,
-        },
-        MissionDefinition {
-            code: "pipes-101".to_owned(),
-            title: "Pipe Dream: Signals Through Neon".to_owned(),
-            required: false,
-            starter: true,
-            hidden: false,
-        },
-        MissionDefinition {
-            code: "finder".to_owned(),
-            title: "Ghost Index: Find and Chain".to_owned(),
-            required: false,
-            starter: true,
-            hidden: false,
-        },
-        MissionDefinition {
-            code: "redirect-lab".to_owned(),
-            title: "Data Splice: Redirect Lab".to_owned(),
-            required: false,
-            starter: true,
-            hidden: false,
-        },
-        MissionDefinition {
-            code: "log-hunt".to_owned(),
-            title: "Corp Leak: Parse the Logs".to_owned(),
-            required: false,
-            starter: true,
-            hidden: false,
-        },
-        MissionDefinition {
-            code: "dedupe-city".to_owned(),
-            title: "Signal Noise: Sort and Uniq".to_owned(),
-            required: false,
-            starter: true,
-            hidden: false,
-        },
+        MissionDefinition::new(
+            KEYS_VAULT,
+            "KEYS VAULT: Secure Your Access",
+            true,
+            false,
+            false,
+            0,
+            "Register your SSH key so CorpSim can tell you apart from the scavengers replaying old credentials.",
+            "CorpSim says the city outage started with stolen access keys. Before they trust you with live lanes, you prove you can secure your own.",
+            "This mission is mostly outside the sim. Generate a key on your local machine, then paste the public key line into keyvault.",
+            "keyvault register",
+        ),
+        MissionDefinition::new(
+            "pipes-101",
+            "Pipe Dream: Signals Through Neon",
+            false,
+            true,
+            false,
+            10,
+            "Count repeated token broadcasts by piping one command into the next.",
+            "A beacon named GLASS-AXON-13 keeps echoing through the gateway. Your job is to measure the noise before the trail goes cold.",
+            "Read the file, filter the token lines, then count them. The | symbol sends output into the next command.",
+            "cat /logs/neon-gateway.log | grep token | wc -l",
+        ).with_validation(vec!["token"]),
+        MissionDefinition::new(
+            "log-hunt",
+            "Corp Leak: Parse the Logs",
+            false,
+            true,
+            false,
+            11,
+            "Pull the important token line out of a noisy log without editing the source file.",
+            "An internal leak says Ghost Rail engineers tagged their last clean heartbeat before vault-sat-9 went dark.",
+            "Start with grep token /logs/neon-gateway.log. If you need a record, redirect the output into /tmp.",
+            "grep token /logs/neon-gateway.log",
+        ).with_validation(vec!["token"]),
+        MissionDefinition::new(
+            "dedupe-city",
+            "Signal Noise: Sort and Uniq",
+            false,
+            true,
+            false,
+            12,
+            "Learn how to sort repeated lines and collapse duplicates into a readable report.",
+            "Market chatter is full of repeated sightings. You need a clean list before the street rumor becomes useless.",
+            "uniq only removes adjacent duplicates, so sort first when the repeated lines are scattered.",
+            "cat /logs/neon-gateway.log | grep token | sort | uniq",
+        ),
+        MissionDefinition::new(
+            "redirect-lab",
+            "Data Splice: Redirect Lab",
+            false,
+            true,
+            false,
+            13,
+            "Save command output into files so you can inspect it again without rerunning the pipeline.",
+            "CorpSim auditors archive everything. You are learning the same trick: catch evidence once, then review it offline.",
+            "> overwrites a file. >> appends to the end. Use /tmp when you want a scratch file.",
+            "grep WARN /logs/neon-gateway.log > /tmp/warnings.txt",
+        ),
+        MissionDefinition::new(
+            "finder",
+            "Ghost Index: Find and Chain",
+            false,
+            true,
+            false,
+            14,
+            "Search the virtual filesystem safely and combine find with simple follow-up commands.",
+            "The first Ghost Rail response team vanished into a directory tree of stale reports and half-finished patches.",
+            "Use find to discover files first. Once you know the path, read it with cat or less.",
+            "find /data -name '*.txt'",
+        ),
         // Advanced post-NetCity missions
-        MissionDefinition {
-            code: "awk-patrol".to_owned(),
-            title: "Field Agent: Awk Patrol".to_owned(),
-            required: false,
-            starter: false,
-            hidden: false,
-        },
-        MissionDefinition {
-            code: "chain-ops".to_owned(),
-            title: "Logic Gate: Conditional Chains".to_owned(),
-            required: false,
-            starter: false,
-            hidden: false,
-        },
-        MissionDefinition {
-            code: "sediment".to_owned(),
-            title: "Stream Edit: Sed Sediment".to_owned(),
-            required: false,
-            starter: false,
-            hidden: false,
-        },
-        MissionDefinition {
-            code: "cut-lab".to_owned(),
-            title: "Field Splitter: Cut Lab".to_owned(),
-            required: false,
-            starter: false,
-            hidden: false,
-        },
-        MissionDefinition {
-            code: "pattern-sweep".to_owned(),
-            title: "Pattern Sweep: Grep Mastery".to_owned(),
-            required: false,
-            starter: false,
-            hidden: false,
-        },
-        MissionDefinition {
-            code: "file-ops".to_owned(),
-            title: "Dir Ops: Recursive File Control".to_owned(),
-            required: false,
-            starter: false,
-            hidden: false,
-        },
-        MissionDefinition {
-            code: "regex-hunt".to_owned(),
-            title: "Regex Hunt: Pattern Matching Mastery".to_owned(),
-            required: false,
-            starter: false,
-            hidden: false,
-        },
-        MissionDefinition {
-            code: "pipeline-pro".to_owned(),
-            title: "Pipeline Pro: Advanced Data Flow".to_owned(),
-            required: false,
-            starter: false,
-            hidden: false,
-        },
-        MissionDefinition {
-            code: "var-play".to_owned(),
-            title: "Var Play: Shell Variables and Export".to_owned(),
-            required: false,
-            starter: false,
-            hidden: false,
-        },
-        MissionDefinition {
-            code: "json-crack".to_owned(),
-            title: "JSON Crack: Parse Structured Data".to_owned(),
-            required: false,
-            starter: false,
-            hidden: false,
-        },
-        MissionDefinition {
-            code: "seq-master".to_owned(),
-            title: "Seq Master: Number the Grid".to_owned(),
-            required: false,
-            starter: false,
-            hidden: false,
-        },
-        MissionDefinition {
-            code: "column-view".to_owned(),
-            title: "Column View: Align the Table".to_owned(),
-            required: false,
-            starter: false,
-            hidden: false,
-        },
+        MissionDefinition::new(
+            "awk-patrol",
+            "Field Agent: Awk Patrol",
+            false,
+            false,
+            false,
+            100,
+            "Extract specific columns from the node registry when plain grep is no longer enough.",
+            "NetCity dispatch is routing crews blind. The registry is intact, but only if you can carve out the fields that matter.",
+            "awk -F, lets you split CSV rows by commas. NR>1 skips the header row.",
+            "awk -F, 'NR>1 {print $1, $3}' /data/node-registry.csv",
+        ),
+        MissionDefinition::new(
+            "chain-ops",
+            "Logic Gate: Conditional Chains",
+            false,
+            false,
+            false,
+            101,
+            "Use && and || so follow-up commands react to success or failure.",
+            "Ghost Rail triage is messy. Operators do not have time to babysit every command, so your shell logic has to choose the next step.",
+            "cmd1 && cmd2 runs cmd2 only if cmd1 succeeds. cmd1 || cmd2 runs cmd2 only if cmd1 fails.",
+            "grep OPEN /var/spool/tasks.txt && echo pending || echo clear",
+        ),
+        MissionDefinition::new(
+            "sediment",
+            "Stream Edit: Sed Sediment",
+            false,
+            false,
+            false,
+            102,
+            "Make targeted edits to streamed text without opening an editor.",
+            "Access logs keep shifting under your feet. You need to patch the stream, not hand-edit every line.",
+            "Start with a single substitution. Add g only when you truly want every match on a line replaced.",
+            "sed 's/DENY/BLOCK/' /logs/access.log",
+        ),
+        MissionDefinition::new(
+            "cut-lab",
+            "Field Splitter: Cut Lab",
+            false,
+            false,
+            false,
+            103,
+            "Slice tabular data down to the one or two fields you actually need.",
+            "A Ghost Rail quartermaster buried the useful inventory signal under too many columns and too much shop talk.",
+            "The inventory file is tab-delimited. Use cut -f with single fields or ranges to peel off columns.",
+            "cut -f1,3 /data/inventory.tsv",
+        ),
+        MissionDefinition::new(
+            "pattern-sweep",
+            "Pattern Sweep: Grep Mastery",
+            false,
+            false,
+            false,
+            104,
+            "Filter auth logs by the exact event class you need and ignore the rest.",
+            "Someone kept poking the perimeter while the blackout unfolded. You are reconstructing their pattern from the auth feed.",
+            "Start simple with grep REJECT. Add -c when you want a count instead of the full lines.",
+            "grep REJECT /var/log/auth.log",
+        ).with_validation(vec!["REJECT"]),
+        MissionDefinition::new(
+            "file-ops",
+            "Dir Ops: Recursive File Control",
+            false,
+            false,
+            false,
+            105,
+            "Practice copying, moving, and cleaning up files inside the simulated workspace.",
+            "A courier dropped two partial workspace bundles. You need to merge them cleanly before a live handoff.",
+            "Inspect with ls first. Then use cp, mv, and rm carefully so you understand exactly what changed.",
+            "cp /data/workspace/config.txt /home/player/config.backup",
+        ),
+        MissionDefinition::new(
+            "regex-hunt",
+            "Regex Hunt: Pattern Matching Mastery",
+            false,
+            false,
+            false,
+            106,
+            "Use extended regex patterns to catch multiple event classes in one pass.",
+            "The event feed is full of mixed severities. One sweep has to catch the serious failures before the room goes dark again.",
+            "grep -E lets you match alternatives like ERROR|FATAL in a single command.",
+            "grep -E 'ERROR|FATAL' /var/log/events.log",
+        ).with_validation(vec!["ERROR"]),
+        MissionDefinition::new(
+            "pipeline-pro",
+            "Pipeline Pro: Advanced Data Flow",
+            false,
+            false,
+            false,
+            107,
+            "Chain several text tools together to transform CSV data into a clear answer.",
+            "NetCity crews are ranked in real time. The board is noisy, and only a clean pipeline reveals who still has enough score to help.",
+            "Break long pipelines into stages if you get lost. Run each command alone, then reconnect them with | once it makes sense.",
+            "cat /data/pipeline.csv | tail -n +2 | sort -t, -k3,3nr | head -n 3",
+        ),
+        MissionDefinition::new(
+            "var-play",
+            "Var Play: Shell Variables and Export",
+            false,
+            false,
+            false,
+            108,
+            "Store values in shell variables so you can reuse them without retyping long paths or node names.",
+            "The cleanup crews are juggling shifting targets. Variables let you keep your focus on the plan instead of on repetitive typing.",
+            "NAME=value sets a variable in the current shell. echo $NAME reads it back.",
+            "TARGET=vault-sat-9 && echo $TARGET",
+        ),
+        MissionDefinition::new(
+            "json-crack",
+            "JSON Crack: Parse Structured Data",
+            false,
+            false,
+            false,
+            109,
+            "Read structured status data and pull out the fields tied to the outage.",
+            "Someone exported a raw node-status object right before the secure relay died. It is ugly, but the answer is in there.",
+            "Even without jq, grep and cut can still extract useful key-value lines from a JSON-like file.",
+            "grep '\"status\"\\|\"alert\"' /data/node-status.json",
+        ),
+        MissionDefinition::new(
+            "seq-master",
+            "Seq Master: Number the Grid",
+            false,
+            false,
+            false,
+            110,
+            "Generate ordered task labels so a scrambled response queue becomes readable.",
+            "The Ghost Rail handoff board lost its numbering during the blackout. Someone still has to restore execution order.",
+            "Use nl when a file already has one item per line. Use seq when you need to generate the numbers yourself.",
+            "nl -ba /home/player/tasks.txt",
+        ),
+        MissionDefinition::new(
+            "column-view",
+            "Column View: Align the Table",
+            false,
+            false,
+            false,
+            111,
+            "Turn raw tab-delimited output into an aligned table that is easier to reason about.",
+            "The route map is technically readable, but only if your eyes enjoy pain. Reformat it before you brief the crew.",
+            "column -t keeps the same data but makes tabular output easier to scan.",
+            "column -t /data/netmap.tsv",
+        ),
+        // Expert-tier missions — chain multiple concepts, reward 30 rep
+        MissionDefinition::new(
+            "deep-pipeline",
+            "Deep Pipeline: Multi-Stage Data Extraction",
+            false,
+            false,
+            false,
+            200,
+            "Build a 4+ stage pipeline that extracts, filters, transforms, and counts data in a single pass.",
+            "Ghost Rail's black box recorder dumped a massive feed. You need to distill the signal: find all CRITICAL entries from sector-7, extract just the timestamps, sort them, and count unique occurrences.",
+            "Chain cat | grep | cut | sort | uniq -c | sort -rn to go from raw data to a ranked frequency table.",
+            "cat /logs/blackbox.log | grep CRITICAL | grep sector-7 | cut -d' ' -f1 | sort | uniq -c | sort -rn",
+        ).with_validation(vec!["sector-7"]),
+        MissionDefinition::new(
+            "log-forensics",
+            "Forensic Sweep: Cross-Reference Attack Patterns",
+            false,
+            false,
+            false,
+            201,
+            "Correlate two different log files to find suspicious IPs that appear in both auth failures and access denials.",
+            "The blackout wasn't random. Someone probed the auth layer AND the access gates in sequence. Cross-reference the logs to find the overlap.",
+            "Extract IPs from each log with grep+awk, sort both lists, then use uniq or comm to find the intersection. Or just grep the output of one into the other.",
+            "grep REJECT /var/log/auth.log | awk '{print $NF}' | sort -u > /tmp/auth-ips.txt && grep DENY /logs/access.log | awk '{print $NF}' | sort -u > /tmp/access-ips.txt && grep -Ff /tmp/auth-ips.txt /tmp/access-ips.txt",
+        ).with_validation(vec!["10.0."]),
+        MissionDefinition::new(
+            "data-transform",
+            "Data Transform: CSV to Report",
+            false,
+            false,
+            false,
+            202,
+            "Transform raw CSV data into a formatted summary report using only shell tools.",
+            "The quartermasters need a clean report from the raw inventory dump. No spreadsheet — just your terminal and the tools you have learned.",
+            "Combine tail (skip header), awk (reformat fields), sort, and head to build a top-N summary. Redirect the result to a file.",
+            "tail -n +2 /data/supply-manifest.csv | awk -F, '{printf \"%-20s %s units  %s\\n\", $2, $3, $4}' | sort -t' ' -k2,2nr | head -n 5 > /tmp/supply-report.txt",
+        ).with_validation(vec!["units"]),
     ]
 }
 
