@@ -34,10 +34,12 @@ jobs:
       - name: Check formatting
         shell: bash
         timeout-minutes: 5
+        working-directory: ssh-hunt
         run: cargo fmt --all --check
       - name: Clippy lints
         shell: bash
         timeout-minutes: 10
+        working-directory: ssh-hunt
         run: cargo clippy --workspace --all-targets -- -D warnings
   test:
     name: Test
@@ -76,6 +78,7 @@ jobs:
       - name: Run tests
         shell: bash
         timeout-minutes: 20
+        working-directory: ssh-hunt
         run: cargo test --workspace
   security:
     name: Security
