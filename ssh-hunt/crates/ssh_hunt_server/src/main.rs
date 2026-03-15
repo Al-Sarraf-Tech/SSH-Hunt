@@ -385,6 +385,81 @@ impl ShellState {
             "system",
         );
 
+        // process-hunt mission: simulated process table
+        let _ = vfs.write_file(
+            "/",
+            "/data/proc-table.txt",
+            "USER       PID  %CPU %MEM COMMAND\nroot         1   0.0  0.1 /sbin/init\nrelay      142   4.2  1.3 /opt/relay/relay-daemon --sector=ghost-rail\nrelay      187   8.7  2.1 /opt/relay/relay-daemon --sector=neon-bazaar\ncron       201   0.0  0.0 /usr/sbin/cron\nroot       288   0.1  0.2 /usr/sbin/sshd\nrelay      312  92.4 14.8 /opt/relay/relay-daemon --sector=vault-sat-9 --mode=recovery\nlogd       401   0.3  0.1 /usr/bin/logd --rotate=daily\nroot       455   0.0  0.0 /bin/bash\n",
+            false,
+            "system",
+        );
+
+        // cron-decode mission: crontab with scheduled jobs
+        let _ = vfs.write_file(
+            "/",
+            "/data/crontab.txt",
+            "# MIN HOUR DOM MON DOW COMMAND\n0 0 * * * /opt/scripts/daily-backup.sh\n30 1 * * * /opt/scripts/log-rotate.sh\n0 3 * * * /opt/scripts/sweep-sector.sh --mode=deep\n15 6 * * 1 /opt/scripts/weekly-audit.sh\n*/5 * * * * /opt/scripts/heartbeat.sh\n0 12 * * * /opt/scripts/noon-report.sh\n0 3 * * 5 /opt/scripts/friday-sweep.sh --full\n",
+            false,
+            "system",
+        );
+
+        // permission-audit mission: files with varying permissions
+        let _ = vfs.mkdir_p("/", "data/configs", "system");
+        let _ = vfs.write_file(
+            "/",
+            "/data/configs/relay.conf",
+            "sector=ghost-rail\nmode=active\nport=8443\n",
+            false,
+            "system",
+        );
+        let _ = vfs.write_file(
+            "/",
+            "/data/configs/vault.conf",
+            "sector=secure\nmode=locked\nport=9443\n",
+            false,
+            "system",
+        );
+
+        // escape-room mission: chained clue files
+        let _ = vfs.mkdir_p("/", "data/drops", "system");
+        let _ = vfs.write_file(
+            "/",
+            "/missions/escape-start.txt",
+            "DEAD DROP PROTOCOL INITIATED\nThe first fragment is hidden in the data directory.\nNEXT: /data/drops/fragment-1.txt\n",
+            false,
+            "system",
+        );
+        let _ = vfs.write_file(
+            "/",
+            "/data/drops/fragment-1.txt",
+            "FRAGMENT 1 OF 3\nGhost Rail relay logs mention a second drop.\nLook for the pattern: the path is always one level deeper.\nNEXT: /data/drops/fragment-2.txt\n",
+            false,
+            "system",
+        );
+        let _ = vfs.write_file(
+            "/",
+            "/data/drops/fragment-2.txt",
+            "FRAGMENT 2 OF 3\nThe final piece is where operatives keep their notes.\nNEXT: /home/player/fragment-3.txt\n",
+            false,
+            "system",
+        );
+        let _ = vfs.write_file(
+            "/",
+            "/home/player/fragment-3.txt",
+            "FRAGMENT 3 OF 3\nAll fragments collected.\nFINAL CODE: ESCAPE-GHOST-RAIL-7X\nSubmit the mission now.\nESCAPE\n",
+            false,
+            "player",
+        );
+
+        // incident-report mission: additional time-stamped events
+        let _ = vfs.write_file(
+            "/",
+            "/var/log/incident.log",
+            "2026-03-07 21:55:00 [auth] ACCEPT user=deploy src=10.0.3.8\n2026-03-07 21:57:22 [auth] REJECT user=probe src=10.0.7.11\n2026-03-07 21:58:01 [access] DENY path=/vault/unlock src=10.0.9.44\n2026-03-07 21:59:15 [access] ALLOW path=/api/health src=10.0.3.8\n2026-03-07 22:00:00 [event] CRITICAL vault-sat-9 unreachable\n2026-03-07 22:00:30 [auth] REJECT user=root src=10.0.9.44\n2026-03-07 22:01:01 [event] ERROR ghost-rail cascade failure\n",
+            false,
+            "system",
+        );
+
         let cwd = "/home/player".to_owned();
         let node = "corp-sim-01".to_owned();
         let mut env = HashMap::new();

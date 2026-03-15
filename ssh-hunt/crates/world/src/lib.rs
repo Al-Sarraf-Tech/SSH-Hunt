@@ -27,10 +27,16 @@ const STARTER_CODES: [&str; 5] = [
     "dedupe-city",
 ];
 /// Intermediate missions — bridge starters to advanced (15 rep each).
-pub const INTERMEDIATE_CODES: [&str; 2] = ["head-tail", "sort-count"];
+pub const INTERMEDIATE_CODES: [&str; 5] = [
+    "head-tail",
+    "sort-count",
+    "wc-report",
+    "tee-split",
+    "xargs-run",
+];
 
 /// Post-NetCity advanced missions (unlock after completing any starter).
-pub const ADVANCED_CODES: [&str; 15] = [
+pub const ADVANCED_CODES: [&str; 18] = [
     "awk-patrol",
     "chain-ops",
     "sediment",
@@ -46,6 +52,9 @@ pub const ADVANCED_CODES: [&str; 15] = [
     "deep-pipeline",
     "log-forensics",
     "data-transform",
+    "process-hunt",
+    "cron-decode",
+    "permission-audit",
 ];
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -1363,6 +1372,46 @@ fn seed_missions() -> Vec<MissionDefinition> {
             "sort puts identical lines together. uniq -c counts consecutive duplicates. sort -rn ranks by count, highest first.",
             "cat /data/signal-feed.txt | sort | uniq -c | sort -rn",
         ).with_validation(vec!["ghost-rail"]),
+        // New intermediate missions — bridge starters to advanced
+        MissionDefinition::new(
+            "wc-report",
+            "Word Count: Measure the Signal",
+            false,
+            false,
+            false,
+            52,
+            "Use wc to count lines, words, and bytes so you know the size of what you are dealing with before you start filtering.",
+            "Ghost Rail feeds vary wildly in size. Before committing to a pipeline, \
+             a seasoned operator measures the input first to know if it is a trickle or a flood.",
+            "wc -l counts lines. wc -w counts words. wc -c counts bytes. Pipe into wc to measure filtered output.",
+            "wc -l /logs/neon-gateway.log && grep token /logs/neon-gateway.log | wc -l",
+        ).with_validation(vec!["token"]),
+        MissionDefinition::new(
+            "tee-split",
+            "Tee Junction: Split the Stream",
+            false,
+            false,
+            false,
+            53,
+            "Use tee to send output to a file AND the screen at the same time so you keep a record while watching live.",
+            "Field operators cannot afford to choose between watching a feed and saving it. \
+             The tee command does both — like a plumber's T-junction for data.",
+            "tee writes stdin to a file AND stdout. Combine it mid-pipeline: cmd | tee /tmp/log.txt | wc -l",
+            "grep WARN /logs/neon-gateway.log | tee /tmp/warnings.txt | wc -l",
+        ),
+        MissionDefinition::new(
+            "xargs-run",
+            "Batch Ops: Xargs Runner",
+            false,
+            false,
+            false,
+            54,
+            "Use xargs to turn a list of items into arguments for another command so you can process them in bulk.",
+            "Ghost Rail dispatch has a queue of filenames that need inspection. \
+             Typing each one by hand is not an option when the list changes every cycle.",
+            "Pipe a list into xargs to run a command once per item. Add -I{} for placement control.",
+            "find /data -name '*.csv' | xargs wc -l",
+        ),
         // Advanced post-NetCity missions
         MissionDefinition::new(
             "awk-patrol",
@@ -1545,6 +1594,87 @@ fn seed_missions() -> Vec<MissionDefinition> {
             "Combine tail (skip header), awk (reformat fields), sort, and head to build a top-N summary. Redirect the result to a file.",
             "tail -n +2 /data/supply-manifest.csv | awk -F, '{printf \"%-20s %s units  %s\\n\", $2, $3, $4}' | sort -t' ' -k2,2nr | head -n 5 > /tmp/supply-report.txt",
         ).with_validation(vec!["units"]),
+        // New advanced missions — system-oriented shell skills
+        MissionDefinition::new(
+            "process-hunt",
+            "Process Hunt: Find What's Running",
+            false,
+            false,
+            false,
+            112,
+            "Use ps and grep to find specific processes running in the simulated node cluster.",
+            "Something is eating resources on the Ghost Rail relay nodes. \
+             Before you can kill it, you need to find it in the process table.",
+            "ps aux lists all processes. Pipe through grep to filter. awk can extract the PID column.",
+            "ps aux | grep relay | grep -v grep | awk '{print $2, $11}'",
+        ).with_validation(vec!["relay"]),
+        MissionDefinition::new(
+            "cron-decode",
+            "Cron Decode: Read the Schedule",
+            false,
+            false,
+            false,
+            113,
+            "Parse crontab entries to understand when scheduled jobs run and find the one that fires during the blackout window.",
+            "Ghost Rail ran automated sweeps on a cron schedule. One of them was supposed to catch the breach, \
+             but it was misconfigured. Find which entry covers the 0300-0400 UTC window.",
+            "Crontab format is: minute hour day-of-month month day-of-week command. The 3rd field is the hour.",
+            "cat /data/crontab.txt | awk '$2 == 3 || $2 == \"3\" {print}'",
+        ).with_validation(vec!["sweep"]),
+        MissionDefinition::new(
+            "permission-audit",
+            "Permission Audit: Check the Gates",
+            false,
+            false,
+            false,
+            114,
+            "Inspect file permissions to find world-writable files that could be tampered with by any user on the node.",
+            "The breach post-mortem says someone modified a config file that should have been locked down. \
+             You need to audit the permissions and find the weak point.",
+            "ls -la shows permissions. Look for 'w' in the last triplet (other). find -perm can search by mode.",
+            "find /data -type f -perm -o=w -ls",
+        ).with_validation(vec!["data"]),
+        // New expert-tier missions — multi-tool chain challenges, 30 rep
+        MissionDefinition::new(
+            "incident-report",
+            "Incident Report: Reconstruct the Timeline",
+            false,
+            false,
+            false,
+            203,
+            "Correlate timestamps across three log files to reconstruct the exact sequence of events during the blackout.",
+            "The incident review board needs a unified timeline. Auth logs, access logs, and event logs \
+             each have pieces. Your job is to merge them into one sorted chronological view.",
+            "Extract timestamp + message from each log, merge them, sort by timestamp. Use awk to normalize the format.",
+            "awk '{print $1, $2, \"[auth]\", $0}' /var/log/auth.log > /tmp/merged.log && awk '{print $1, $2, \"[access]\", $0}' /logs/access.log >> /tmp/merged.log && sort /tmp/merged.log | head -n 20",
+        ).with_validation(vec!["auth"]),
+        MissionDefinition::new(
+            "anomaly-detect",
+            "Anomaly Detection: Statistical Outliers",
+            false,
+            false,
+            false,
+            204,
+            "Use shell arithmetic and frequency analysis to find statistically unusual entries in the network feed.",
+            "Most nodes check in every 60 seconds. The anomaly is the node that checks in 10x more often — \
+             or the one that stopped entirely. Build a frequency table and find the outliers.",
+            "Build a frequency table with sort | uniq -c | sort -rn, then use awk to flag counts above a threshold.",
+            "cat /data/signal-feed.txt | sort | uniq -c | sort -rn | awk '$1 > 5 || $1 < 2 {print \"ANOMALY:\", $0}'",
+        ).with_validation(vec!["ANOMALY"]),
+        MissionDefinition::new(
+            "escape-room",
+            "Escape Room: Chained Puzzle",
+            false,
+            false,
+            false,
+            205,
+            "Solve a multi-step puzzle where each command's output contains the clue for the next step. \
+             Chain five commands to reach the final answer.",
+            "Ghost Rail left a dead drop in the filesystem. Each file points to the next. \
+             Start at /missions/escape-start.txt and follow the trail to the final code.",
+            "Read each file, extract the path hint, follow it. The answer is a 6-character code in the last file.",
+            "cat /missions/escape-start.txt | grep 'NEXT:' | awk '{print $2}' | xargs cat",
+        ).with_validation(vec!["ESCAPE"]),
     ]
 }
 
