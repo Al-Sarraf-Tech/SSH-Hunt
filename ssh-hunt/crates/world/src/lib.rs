@@ -117,6 +117,7 @@ pub struct MissionDefinition {
 }
 
 impl MissionDefinition {
+    #[allow(clippy::too_many_arguments)]
     fn new(
         code: &str,
         title: &str,
