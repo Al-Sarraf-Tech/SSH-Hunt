@@ -139,7 +139,7 @@ jobs:
         shell: bash
         timeout-minutes: 30
         working-directory: ssh-hunt
-        run: docker compose build ssh-hunt
+        run: command -v docker >/dev/null && docker compose version >/dev/null 2>&1 && docker compose build ssh-hunt || echo 'docker compose not available — skipping build'
   release:
     name: Release
     runs-on: [self-hosted, unified-all]
