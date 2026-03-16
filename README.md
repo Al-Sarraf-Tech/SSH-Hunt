@@ -1,10 +1,8 @@
 # SSH-Hunt
 
 [![CI](https://github.com/jalsarraf0/SSH-Hunt/actions/workflows/ci.yml/badge.svg)](https://github.com/jalsarraf0/SSH-Hunt/actions/workflows/ci.yml)
-[![Security](https://github.com/jalsarraf0/SSH-Hunt/actions/workflows/security.yml/badge.svg)](https://github.com/jalsarraf0/SSH-Hunt/actions/workflows/security.yml)
-[![CodeQL](https://github.com/jalsarraf0/SSH-Hunt/actions/workflows/codeql.yml/badge.svg)](https://github.com/jalsarraf0/SSH-Hunt/actions/workflows/codeql.yml)
-[![Deep Sweep](https://github.com/jalsarraf0/SSH-Hunt/actions/workflows/deep-security-sweep.yml/badge.svg)](https://github.com/jalsarraf0/SSH-Hunt/actions/workflows/deep-security-sweep.yml)
-[![Docker](https://github.com/jalsarraf0/SSH-Hunt/actions/workflows/docker.yml/badge.svg)](https://github.com/jalsarraf0/SSH-Hunt/actions/workflows/docker.yml)
+
+> CI runs on self-hosted runners managed by [haskell-ci-orchestrator](https://github.com/jalsarraf0/haskell-ci-orchestrator) with build attestation. Lint, test, security, SBOM, Docker, and release jobs are unified in a single pipeline.
 
 SSH-Hunt is a publicly playable cyberpunk SSH game and terminal learning MMO.
 
