@@ -91,7 +91,6 @@ jobs:
       - name: Secrets scan (gitleaks)
         shell: bash
         timeout-minutes: 10
-        working-directory: ssh-hunt
         run: gitleaks detect --source=. --no-banner --exit-code=1
       - name: Cargo audit
         shell: bash
