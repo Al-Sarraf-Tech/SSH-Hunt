@@ -310,10 +310,11 @@ pub fn default_registry() -> BuiltinRegistry {
             .collect();
         let raw = words.join(" ");
         let content = if interp {
-            raw.replace("\\n", "\n")
+            raw.replace("\\\\", "\x00")
+                .replace("\\n", "\n")
                 .replace("\\t", "\t")
                 .replace("\\r", "\r")
-                .replace("\\\\", "\\")
+                .replace('\x00', "\\")
         } else {
             raw
         };
@@ -330,12 +331,14 @@ pub fn default_registry() -> BuiltinRegistry {
         }
         let fmt = &args[0];
         let fmt_args = &args[1..];
-        // Pre-process escape sequences in format string
+        // Pre-process escape sequences in format string (handle \\\\ first via sentinel
+        // to prevent \\n from being consumed as a newline escape).
         let fmt_str = fmt
+            .replace("\\\\", "\x00")
             .replace("\\n", "\n")
             .replace("\\t", "\t")
             .replace("\\r", "\r")
-            .replace("\\\\", "\\");
+            .replace('\x00', "\\");
         let mut out = String::new();
         let mut arg_idx = 0usize;
         let mut chars = fmt_str.chars().peekable();
