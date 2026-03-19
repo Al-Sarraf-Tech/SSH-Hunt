@@ -1,7 +1,6 @@
 # SSH-Hunt
 
 [![CI](https://github.com/jalsarraf0/SSH-Hunt/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/jalsarraf0/SSH-Hunt/actions/workflows/ci.yml)
-[![CI](https://github.com/Al-Sarraf-Tech/SSH-Hunt/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Al-Sarraf-Tech/SSH-Hunt/actions/workflows/ci.yml)
 
 ### **[The Ghost Rail Conspiracy — Full Story & Lore](STORY.md)**
 
