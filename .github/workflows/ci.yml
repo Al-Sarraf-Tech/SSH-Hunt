@@ -44,7 +44,7 @@ jobs:
         run: cargo fmt --all --check
       - name: Clippy lints
         shell: bash
-        timeout-minutes: 10
+        timeout-minutes: 15
         working-directory: ssh-hunt
         run: cargo clippy --workspace --all-targets -- -D warnings
   test:
