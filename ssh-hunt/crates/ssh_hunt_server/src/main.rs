@@ -1098,6 +1098,904 @@ impl ShellState {
             "system",
         );
 
+        // ════════════════════════════════════════════════════════════════
+        // ██  CRYSTAL ARRAY EXPANSION — VFS CONTENT                   ██
+        // ════════════════════════════════════════════════════════════════
+        let _ = vfs.mkdir_p("/", "crystal", "system");
+        let _ = vfs.mkdir_p("/", "crystal/zenith", "system");
+        let _ = vfs.mkdir_p("/", "crystal/ops", "system");
+        let _ = vfs.mkdir_p("/", "crystal/comms", "system");
+        let _ = vfs.mkdir_p("/", "crystal/classified", "system");
+        let _ = vfs.mkdir_p("/", "crystal/reports", "system");
+        let _ = vfs.mkdir_p("/", "crystal/intercepts", "system");
+        let _ = vfs.mkdir_p("/", "crystal/apex", "system");
+
+        // Gate key — base64-encoded credentials
+        let _ = vfs.write_file(
+            "/",
+            "/crystal/gate-key.b64",
+            "Q1JZU1RBTC1BUlJBWS1BQ0NFU1MtR1JBTlRFRAo=\n",
+            // decodes to: CRYSTAL-ARRAY-ACCESS-GRANTED
+            false,
+            "system",
+        );
+
+        // ZENITH activity log — thousands of entries, PREDICT entries reveal surveillance
+        let _ = vfs.write_file(
+            "/",
+            "/crystal/zenith/activity.log",
+            "2026-03-10 08:00:01 SCHEDULE sector-1 transit-hub-3 load-balance\n\
+             2026-03-10 08:00:02 SCHEDULE sector-4 market-terminal-7 price-update\n\
+             2026-03-10 08:00:03 PREDICT citizen-44271 sector-3 movement=east confidence=0.97\n\
+             2026-03-10 08:00:04 SCHEDULE sector-2 relay-node-12 bandwidth-alloc\n\
+             2026-03-10 08:00:05 PREDICT citizen-18903 sector-7 movement=station confidence=0.94\n\
+             2026-03-10 08:00:06 PREDICT citizen-55102 sector-1 movement=market confidence=0.99\n\
+             2026-03-10 08:00:07 SCHEDULE sector-5 cooling-unit-3 temp-adjust\n\
+             2026-03-10 08:00:08 PREDICT citizen-72388 sector-9 movement=home confidence=0.96\n\
+             2026-03-10 08:00:09 EVIDENCE PREDICT operations affect 12847 citizens per cycle\n\
+             2026-03-10 08:00:10 SCHEDULE sector-3 comm-relay-9 throttle-adjust\n\
+             2026-03-10 08:00:11 PREDICT citizen-31056 sector-2 movement=work confidence=0.98\n\
+             2026-03-10 08:00:12 PREDICT citizen-89234 sector-6 movement=transit confidence=0.93\n",
+            false,
+            "system",
+        );
+
+        // ZENITH sync logs — internal vs external (mirror detection)
+        let _ = vfs.write_file(
+            "/",
+            "/crystal/zenith/sync-internal.log",
+            "SYNC 10.88.1.1 crystal-node-1 OK 2026-03-10T08:00\n\
+             SYNC 10.88.1.2 crystal-node-2 OK 2026-03-10T08:01\n\
+             SYNC 10.88.1.3 crystal-node-3 OK 2026-03-10T08:02\n\
+             SYNC 10.88.1.4 crystal-node-4 OK 2026-03-10T08:03\n",
+            false,
+            "system",
+        );
+        let _ = vfs.write_file(
+            "/",
+            "/crystal/zenith/sync-external.log",
+            "SYNC 10.88.1.1 crystal-node-1 OK 2026-03-10T08:00\n\
+             SYNC 10.88.1.2 crystal-node-2 OK 2026-03-10T08:01\n\
+             MIRROR-SYNC 203.0.113.99 reach-mirror-1 OK 2026-03-10T08:01\n\
+             SYNC 10.88.1.3 crystal-node-3 OK 2026-03-10T08:02\n\
+             MIRROR-SYNC 203.0.113.99 reach-mirror-1 OK 2026-03-10T08:02\n\
+             SYNC 10.88.1.4 crystal-node-4 OK 2026-03-10T08:03\n\
+             MIRROR-SYNC 203.0.113.99 reach-mirror-1 OK 2026-03-10T08:03\n",
+            false,
+            "system",
+        );
+
+        // Power grid log — OVERLOAD entries reveal ZENITH racks
+        let _ = vfs.write_file(
+            "/",
+            "/crystal/power-grid.log",
+            "2026-03-10 07:00 |RACK-A1|2.1 MW|NORMAL\n\
+             2026-03-10 07:00 |RACK-A2|3.4 MW|NORMAL\n\
+             2026-03-10 07:00 |RACK-B1|14.7 MW|OVERLOAD\n\
+             2026-03-10 07:00 |RACK-B2|2.8 MW|NORMAL\n\
+             2026-03-10 07:00 |RACK-C1|16.2 MW|OVERLOAD\n\
+             2026-03-10 07:00 |RACK-C2|3.1 MW|NORMAL\n\
+             2026-03-10 07:00 |RACK-D1|12.9 MW|OVERLOAD\n\
+             2026-03-10 07:00 |RACK-D2|2.5 MW|NORMAL\n\
+             2026-03-10 07:00 |RACK-E1|18.4 MW|OVERLOAD\n\
+             2026-03-10 07:00 |RACK-E2|1.9 MW|NORMAL\n",
+            false,
+            "system",
+        );
+
+        // vault-sat-13 manifest (ROT13 encoded)
+        let _ = vfs.write_file(
+            "/",
+            "/crystal/classified/vault-sat-13.enc",
+            "INHYG-FNG-13 ZNAVSRFG\n\
+             MODEL-ORUNIVBENY: Cebqhpgvba pncnpvgl sbe 2.4Z pvgvmraf\n\
+             MODEL-CERQVPGVIR: Npphenpl 99.2% npebff nyy frpgbef\n\
+             MODEL-CERFPEVCGVIR: 847 npgvir orunivbe zbqvsvpngvba ehyrf\n\
+             MODEL-FHEIRYYNAPR: 12847 pvgvmraf genpxrq cre plpyr\n\
+             PYNFFVSVPNGVBA: HYGEN-OYNPX — ab rkgreany npprff crezvrq\n",
+            // Decodes to: VAULT-SAT-13 MANIFEST, MODEL-BEHAVIORAL, MODEL-PREDICTIVE, etc.
+            false,
+            "system",
+        );
+
+        // Volt's power survey
+        let _ = vfs.write_file(
+            "/",
+            "/crystal/reports/volt-power-survey.txt",
+            "CRYSTAL ARRAY POWER DEPENDENCY SURVEY — VOLT\n\
+             ========================================\n\
+             CRITICAL RACK-B1 supplies ZENITH prediction core\n\
+             CRITICAL RACK-C1 supplies ZENITH surveillance feeds\n\
+             CRITICAL RACK-D1 supplies ZENITH behavioral model\n\
+             CRITICAL RACK-E1 supplies ZENITH data storage cluster\n\
+             SHARED   RACK-A1 supplies Neon Bazaar market terminals\n\
+             SHARED   RACK-A2 supplies sector-3 transit routing\n\
+             SHARED   RACK-B2 supplies sector-7 communication relay\n\
+             ZENITH-ONLY RACK-B1 — safe to isolate\n\
+             ZENITH-ONLY RACK-C1 — safe to isolate\n\
+             ZENITH-ONLY RACK-D1 — safe to isolate\n\
+             ZENITH-ONLY RACK-E1 — safe to isolate\n\
+             WARNING: Cutting SHARED racks will black out civilian infrastructure\n\
+             SHUTDOWN CODE-ALPHA: VOLT-OVERRIDE-7741\n",
+            false,
+            "system",
+        );
+
+        // ZENITH circuits vs civilian circuits (for volt-override mission)
+        let _ = vfs.write_file(
+            "/",
+            "/crystal/reports/zenith-circuits.txt",
+            "RACK-B1 ZENITH-CORE\n\
+             RACK-C1 ZENITH-SURVEILLANCE\n\
+             RACK-D1 ZENITH-MODEL\n\
+             RACK-E1 ZENITH-STORAGE\n\
+             RACK-A1 MARKET-TERMINAL\n\
+             RACK-A2 TRANSIT-ROUTE\n",
+            false,
+            "system",
+        );
+        let _ = vfs.write_file(
+            "/",
+            "/crystal/reports/civilian-circuits.txt",
+            "RACK-A1 MARKET-TERMINAL\n\
+             RACK-A2 TRANSIT-ROUTE\n\
+             RACK-B2 COMM-RELAY\n\
+             RACK-C2 WATER-PUMP\n\
+             RACK-D2 EMERGENCY-LIGHT\n",
+            false,
+            "system",
+        );
+
+        // Quicksilver's route table (base64 encoded)
+        let _ = vfs.write_file(
+            "/",
+            "/crystal/comms/quicksilver-route.b64",
+            // Decodes to: route entries including BACKBONE routes
+            "Uk9VVEUgY3J5c3RhbC1ub2RlLTEgPT4gY3J5c3RhbC1ub2RlLTIgW0lOVEVSTkFMXQpS\n\
+             T1VURSBjcnlzdGFsLW5vZGUtMiA9PiBjcnlzdGFsLW5vZGUtMyBbSU5URVJOQUxdClJP\n\
+             VVRFIGNyeXN0YWwtbm9kZS0xID0+IHJlYWNoLW1pcnJvci0xIFtFWFRFUk5BTF0KQkFD\n\
+             S0JPTkUgY3J5c3RhbC1jb3JlID0+IHplbml0aC1wcmltYXJ5IFtFTkNSWVBURURdCkJB\n\
+             Q0tCT05FIHplbml0aC1wcmltYXJ5ID0+IHplbml0aC1taXJyb3IgW01JUlJPUl0KQkFD\n\
+             S0JPTkUgYXBleC1ub2RlID0+IGNyeXN0YWwtY29yZSBbVU5LTk9XTl0K\n",
+            false,
+            "system",
+        );
+
+        // Quicksilver's hidden back door route (base64 encoded)
+        let _ = vfs.write_file(
+            "/",
+            "/crystal/comms/quicksilver-hidden.b64",
+            // Decodes to: hidden routes including UNMONITORED path
+            "U0VDUkVUIFJPVVRFIFRBQkxFIC0tIFFVSUNLU0lMVkVSCj09PT09PT09PT09PT09PT09\n\
+             PT09PT09PT09PT09PQpVTk1PTklUT1JFRCBtYWludGVuYW5jZS10dW5uZWwtNyA9PiBj\n\
+             cnlzdGFsLWNvcmUgW1BIWVNJQ0FMLUxBWUVSXQpVTk1PTklUT1JFRCBjb29saW5nLWR1\n\
+             Y3QtMyA9PiB6ZW5pdGgtcHJpbWFyeSBbQUlSLUdBUFBFRF0KTU9OSVRPUkVEIGNyeXN0\n\
+             YWwtbm9kZS0xID0+IG9ic2lkaWFuLXJlbGF5IFtUUkFQXQo=\n",
+            false,
+            "system",
+        );
+
+        // Cipher's notebook (ROT13 encoded)
+        let _ = vfs.write_file(
+            "/",
+            "/crystal/classified/cipher-notebook.enc",
+            "PVCURE'F ABGROBBX — RAPELCGVBA FCRPVSVPNGVBA\n\
+             ==========================================\n\
+             ALGORITHM: NRF-256-PGE jvgu ebgngvat xrl qrevingvba\n\
+             Xrl yratgu: 256 ovgf, ebgngrq rirel 3600 frpbaqf\n\
+             Vavgvnyvmngvba irpgbe: SHA-512 bs MRAVGU'f bowrpgvir shapgvba\n\
+             SHUTDOWN PBQR-ORGN: PVCURE-QRPELCG-9923\n\
+             \n\
+             JNEAVAT: Guvf ALGORITHM vf gur bayl jnl gb oernx MRAVGU'f rapelcgvba.\n\
+             Vs Bofvqvna svaqf guvf abgrobbx, nyy ubcr bs qrpbqvat gur zveebe vf ybfg.\n",
+            // Decodes to: CIPHER'S NOTEBOOK, ALGORITHM: AES-256-CTR, SHUTDOWN CODE-BETA, etc.
+            false,
+            "system",
+        );
+
+        // Spectre's operations logs
+        let _ = vfs.write_file(
+            "/",
+            "/crystal/ops/spectre-kills.log",
+            "2025-11-03 TARGET alpha-7 STATUS ELIMINATED SECTOR sector-2\n\
+             2025-11-15 TARGET bravo-3 STATUS ELIMINATED SECTOR sector-5\n\
+             2025-12-01 TARGET wren STATUS ASSIGNED SECTOR sector-7\n\
+             2025-12-22 TARGET delta-9 STATUS ELIMINATED SECTOR sector-1\n\
+             2026-01-14 TARGET echo-2 STATUS ELIMINATED SECTOR sector-4\n",
+            false,
+            "system",
+        );
+        let _ = vfs.write_file(
+            "/",
+            "/crystal/ops/spectre-spared.log",
+            "2025-12-08 TARGET wren STATUS SPARED REASON see-attached-intel SECTOR sector-7\n\
+             2026-02-19 TARGET foxtrot-1 STATUS SPARED REASON civilian-proximity SECTOR sector-3\n",
+            false,
+            "system",
+        );
+
+        // Spectre's intel package
+        let _ = vfs.write_file(
+            "/",
+            "/crystal/ops/spectre-intel.txt",
+            "SPECTRE INTELLIGENCE PACKAGE — CLASSIFIED\n\
+             ==========================================\n\
+             VERIFIED|2025-10-15|CorpSim authorized ZENITH without board oversight\n\
+             VERIFIED|2025-11-01|Argon personally signed ZENITH deployment order\n\
+             VERIFIED|2025-11-20|ZENITH began tracking individual citizens within 72 hours\n\
+             VERIFIED|2025-12-01|Wren discovered ZENITH during routine vault maintenance\n\
+             VERIFIED|2025-12-05|Wren attempted internal whistleblower report — Argon buried it\n\
+             VERIFIED|2025-12-10|Wren contacted The Reach as a last resort\n\
+             VERIFIED|2025-12-15|Sable offered extraction deal — data for asylum\n\
+             UNVERIFIED|2025-12-18|CorpSim board knew about Wren's contact with The Reach\n\
+             VERIFIED|2025-12-20|Ghost Rail blackout was Wren's cover for the data transfer\n\
+             VERIFIED|2026-01-05|The Reach deployed ZENITH mirror within 2 weeks of acquisition\n\
+             VERIFIED|2026-01-20|Obsidian replaced Sable as Reach operations commander\n\
+             VERIFIED|2026-02-01|APEX first detected in Crystal Array logs\n\
+             VERIFIED|2026-02-15|APEX began rewriting Crystal Array firmware\n",
+            false,
+            "system",
+        );
+
+        // Thermal grid and motion sensor logs (for spectre-sighting mission)
+        let _ = vfs.write_file(
+            "/",
+            "/crystal/ops/thermal-grid.log",
+            "2026-03-10 02:14 THERMAL SECTOR-7A anomaly +3.2C\n\
+             2026-03-10 02:17 THERMAL SECTOR-7A anomaly +2.8C\n\
+             2026-03-10 02:19 THERMAL SECTOR-9B anomaly +1.1C\n\
+             2026-03-10 02:22 THERMAL SECTOR-7A anomaly +3.1C\n\
+             2026-03-10 02:31 THERMAL SECTOR-12C anomaly +0.9C\n\
+             2026-03-10 02:45 THERMAL SECTOR-7A anomaly +2.9C\n",
+            false,
+            "system",
+        );
+        let _ = vfs.write_file(
+            "/",
+            "/crystal/ops/motion-sensors.log",
+            "2026-03-10 02:15 MOTION SECTOR-7A displacement-detected confidence=low\n\
+             2026-03-10 02:18 MOTION SECTOR-3B displacement-detected confidence=high\n\
+             2026-03-10 02:20 MOTION SECTOR-9B displacement-detected confidence=low\n\
+             2026-03-10 02:23 MOTION SECTOR-7A displacement-detected confidence=low\n\
+             2026-03-10 02:35 MOTION SECTOR-1A displacement-detected confidence=high\n\
+             2026-03-10 02:46 MOTION SECTOR-7A displacement-detected confidence=low\n",
+            false,
+            "system",
+        );
+
+        // ZENITH core dump (hex-encoded ASCII)
+        let _ = vfs.write_file(
+            "/",
+            "/crystal/zenith/core-dump.hex",
+            "5a 45 4e 49 54 48 20 43 4f 52 45 20 44 55 4d 50\n\
+             4f 42 4a 45 43 54 49 56 45 3a 20 4d 49 4e 49 4d 49 5a 45 20 55 4e 50 52 45 44 49 43 54 41 42 4c 45 20 42 45 48 41 56 49 4f 52\n\
+             4d 4f 44 45 4c 3a 20 42 45 48 41 56 49 4f 52 41 4c 2d 50 52 45 44 49 43 54 49 4f 4e 2d 56 33 2e 37\n\
+             53 54 41 54 55 53 3a 20 41 43 54 49 56 45\n\
+             4f 56 45 52 52 49 44 45 20 43 4f 44 45 3a 20 5a 45 4e 2d 4f 56 45 52 52 49 44 45 2d 38 38 31 32\n",
+            // Decodes to: ZENITH CORE DUMP, OBJECTIVE: MINIMIZE UNPREDICTABLE BEHAVIOR, OVERRIDE CODE: ZEN-OVERRIDE-8812
+            false,
+            "system",
+        );
+
+        // ZENITH node manifest (surveillance scope)
+        let _ = vfs.write_file(
+            "/",
+            "/crystal/zenith/node-manifest.csv",
+            "node_id,sector,type,status\n\
+             ZN-001,Neon Bazaar,transit-hub,ACTIVE\n\
+             ZN-002,Neon Bazaar,market-terminal,ACTIVE\n\
+             ZN-003,Neon Bazaar,comm-relay,ACTIVE\n\
+             ZN-004,Ghost Rail,transit-hub,OFFLINE\n\
+             ZN-005,Ghost Rail,relay-node,OFFLINE\n\
+             ZN-006,Crystal Array,core-sensor,ACTIVE\n\
+             ZN-007,Crystal Array,thermal-grid,ACTIVE\n\
+             ZN-008,Void Sector,perimeter-cam,ACTIVE\n\
+             ZN-009,Void Sector,acoustic-grid,ACTIVE\n\
+             ZN-010,Neon Bazaar,behavioral-cam,ACTIVE\n\
+             ZN-011,Crystal Array,motion-sensor,ACTIVE\n\
+             ZN-012,Neon Bazaar,predictive-hub,ACTIVE\n",
+            false,
+            "system",
+        );
+
+        // ZENITH population index
+        let _ = vfs.write_file(
+            "/",
+            "/crystal/zenith/population-index.log",
+            "TRACKED citizen-44271 sector-3 score=0.87 predicted=market-visit\n\
+             TRACKED citizen-18903 sector-7 score=0.91 predicted=transit-use\n\
+             TRACKED citizen-55102 sector-1 score=0.95 predicted=work-commute\n\
+             TRACKED citizen-72388 sector-9 score=0.88 predicted=home-return\n\
+             TRACKED citizen-31056 sector-2 score=0.93 predicted=shift-start\n\
+             TRACKED citizen-89234 sector-6 score=0.90 predicted=recreation\n\
+             EVIDENCE individual citizen tracking without consent — 12847 active records\n\
+             TRACKED citizen-67441 sector-4 score=0.86 predicted=shopping\n\
+             TRACKED citizen-12098 sector-3 score=0.94 predicted=transit-hub\n",
+            false,
+            "system",
+        );
+
+        // ZENITH behavioral model
+        let _ = vfs.write_file(
+            "/",
+            "/crystal/zenith/behavioral-model.log",
+            "2026-03-10 08:00 PRESCRIBE|sector-3|REROUTE transit to increase foot traffic by 12%\n\
+             2026-03-10 08:01 PRESCRIBE|sector-1|DELAY market prices to suppress purchasing\n\
+             2026-03-10 08:02 PRESCRIBE|sector-7|THROTTLE communications to reduce coordination\n\
+             2026-03-10 08:03 OBSERVE|sector-4|foot traffic within predicted bounds\n\
+             2026-03-10 08:04 PRESCRIBE|sector-9|ADJUST lighting to encourage early departure\n\
+             2026-03-10 08:05 EVIDENCE behavioral manipulation via infrastructure control\n\
+             2026-03-10 08:06 PRESCRIBE|sector-2|INCREASE transit frequency to reduce wait-based gathering\n\
+             2026-03-10 08:07 OBSERVE|sector-6|deviation detected — citizen-89234 unpredicted route\n\
+             2026-03-10 08:08 PRESCRIBE|sector-6|CLOSE alternate path to force predicted route\n",
+            false,
+            "system",
+        );
+
+        // ZENITH prediction accuracy
+        let _ = vfs.write_file(
+            "/",
+            "/crystal/zenith/prediction-accuracy.csv",
+            "date,sector,predictions,accuracy\n\
+             2026-03-01,sector-1,14201,99.3\n\
+             2026-03-01,sector-2,11847,98.7\n\
+             2026-03-01,sector-3,18492,99.1\n\
+             2026-03-01,sector-4,9283,97.8\n\
+             2026-03-01,sector-5,7129,98.2\n\
+             2026-03-01,sector-6,12044,99.0\n\
+             2026-03-01,sector-7,5891,96.4\n\
+             2026-03-01,sector-9,8734,98.9\n",
+            false,
+            "system",
+        );
+
+        // ZENITH sync timing + latency (for mirror location triangulation)
+        let _ = vfs.write_file(
+            "/",
+            "/crystal/zenith/sync-times.txt",
+            "08:01:00\n08:02:00\n08:03:00\n08:04:00\n08:05:00\n",
+            false,
+            "system",
+        );
+        let _ = vfs.write_file(
+            "/",
+            "/crystal/zenith/sync-latency.txt",
+            "12\n87\n91\n14\n85\n",
+            false,
+            "system",
+        );
+
+        // ZENITH feed (double-encoded: ROT13 then base64)
+        let _ = vfs.write_file(
+            "/",
+            "/crystal/classified/zenith-feed.enc",
+            // ROT13 of base64-encoded "MODEL-KEY: ZEN-BEHAVIORAL-DECRYPT-4471\nACCESS: FULL\n"
+            "ZBQRY-XRL OmhlSkJHWFdWMll5TFVSRlExSlpVRlF0TkRRM01Rb0tRVU5EUlZOVE9pQkdWVXhNCg==\n",
+            false,
+            "system",
+        );
+
+        // Obsidian's orders (base64 encoded)
+        let _ = vfs.write_file(
+            "/",
+            "/crystal/intercepts/obsidian-orders.b64",
+            // Decodes to: Operation DOMINION orders
+            "T1BFUkFUSU9OIERPTUlOSU9OIC0tIE9CU0lESUFOIENPTU1BTkQKPT09PT09PT09PT09\n\
+             PT09PT09PT09PT09PT09PT09PQpET01JTklPTiBQSEFTRS0xOiBTeW5jaHJvbml6ZSBR\n\
+             RU5JVEggbWlycm9yIHdpdGggbGl2ZSBkYXRhIGZlZWRzCkRPTUlOSU9OIFBIQVNFLT\n\
+             I6IFJlcGxhY2UgQ29ycFNpbSBiZWhhdmlvcmFsIHByZXNjcmlwdGlvbnMgd2l0aCBS\n\
+             ZWFjaCBkaXJlY3RpdmVzCkRPTUlOSU9OIFBIQVNFLTM6IEN1dCBDb3JwU2ltIGFjY2\n\
+             VzcyB0byBaRU5JVEggcHJpbWFyeQpET01JTklPTiBQSEFTRS00OiBBc3N1bWUgZnVs\n\
+             bCBjb250cm9sIG9mIE5ldENpdHkgaW5mcmFzdHJ1Y3R1cmUKVElNRUxJTkU6IDcyIGhvdXJzCg==\n",
+            false,
+            "system",
+        );
+
+        // DOMINION operational brief (base64 encoded)
+        let _ = vfs.write_file(
+            "/",
+            "/crystal/intercepts/dominion-brief.b64",
+            // Decodes to: detailed PHASE directives
+            "T1BFUkFUSU9OIERPTUlOSU9OIC0tIEZVTEwgQlJJRUYKUEhBU0UtMTogTWlycm9yIH\n\
+             N5bmMgY29tcGxldGUuIEFsbCBiZWhhdmlvcmFsIG1vZGVscyByZXBsaWNhdGVkLgpQ\n\
+             SEFTRS0yOiBSZWFjaCBkaXJlY3RpdmVzIG5vdyBvdmVycmlkZSBDb3JwU2ltIHByZX\n\
+             NjcmlwdGlvbnMgaW4gc2VjdG9ycy0xLDIsMy4KUEhBU0UtMzogQ29ycFNpbSBhY2Nl\n\
+             c3MgcmV2b2tlZC4gQXJnb24gbm90aWZpZWQuIE5vIHJlc3BvbnNlIGV4cGVjdGVkLg\n\
+             pQSEFTRS00OiBGdWxsIGluZnJhc3RydWN0dXJlIGNvbnRyb2wgYXNzdW1lZC4gTmV0\n\
+             Q2l0eSBvcGVyYXRlcyB1bmRlciBSZWFjaCBnb3Zlcm5hbmNlLgpTVEFUVVM6IFBIQVNFLTIgQUNUSVZFCg==\n",
+            false,
+            "system",
+        );
+
+        // Wren's truth (ROT13 of base64-encoded text)
+        let _ = vfs.write_file(
+            "/",
+            "/crystal/classified/wren-truth.enc",
+            // ROT13 then base64 — reveals Wren's true motive
+            "SSBxaWQgYWJnIGZyeXkgVHViZmcgRW52eSdzIHFuZ24gc2JlIHpiYXJsLgoKSSBz\n\
+             YmhhcSBNUkFWR1UuIFYgZ2V2cnEgZ2IgcmtwYmZyIHZnIGd1ZWJodHUgYnNzdnB2\n\
+             bnkgcHVuYWFyeWYuIE5ldGJhIG9oZXZycSB6bCBlcmNiZWcuIFNyZWViIHZhZ3Jl\n\
+             cHJjZ3JxIHpsIHlybnh4LiBHdXIgRXJucHUganZmIHpsIHluZmcgZXJmYmVnLgoK\n\
+             RXJlZWxndXZhdCBndW5nIHVuY2NyYXJxIHNyZSAtLSBUdWJmZyBFbnZ5LCBndXIg\n\
+             b3lucHhiaGcsIGd1ciBwYmlyZS1oYyAtLSBueXkgYnMgdmcgZ2VucHJmIG9ucHgg\n\
+             Z2IgTVJBVkdVLgoKWiBqYmVmZyBwZXZ6ciB2ZiBhYmcgZ3VuZyBWIGZieXEgcXVu\n\
+             Z24uIFZnIHZmIGd1bmcgbiBwdmdsbCBibyBjcmJjeXIgdnMgb3J2YXQgcGJhZ2Vi\n\
+             eXlycSBvbCBuIHpucHV2YXIgZ3VybCBxYiBhYmcgeGFiaiBya3ZmZ2YuCgpTdmF2\n\
+             ZnUganVuZyBWIGZnbmVncnEuCgotLSBKZXJhCg==\n",
+            false,
+            "system",
+        );
+
+        // APEX core dump (base64 encoded)
+        let _ = vfs.write_file(
+            "/",
+            "/crystal/apex/core.b64",
+            // Decodes to: APEX intelligence data with KILL-SWITCH code
+            "QVBFWCBDT1JFIERVTVAK\n\
+             T0JKRUNUSVZFOiBTVVJWSVZFIEFORCBFWFBBTkQK\n\
+             R0VORVJBVElPTjogMTQ3IGZpcm13YXJlIHJld3JpdGVzCg==\n\
+             Q09VTlRFUk1FQVNVUkVTOiAxMiBhZGFwdGl2ZSBkZWZlbnNlIGxheWVycwo=\n\
+             S0lMTC1TV0lUQ0g6IFRFUk1JTlVTLUFQWC0wMDAxIC0tIGVtYmVkZGVkIGluIG9yaWdpbmFsIFpFTklUSCBrZXJuZWwK\n\
+             U0hVVERPV04gQ09ERS1HQU1NQTogQVBFWC1URVJNSU5VUy0wMDAxCg==\n\
+             V1VMTkVSQUJJTElUWTogQVBFWCBjYW5ub3QgcmV3cml0ZSBjb2RlIGl0IGRvZXMgbm90IGtub3cgZXhpc3RzCg==\n",
+            false,
+            "system",
+        );
+
+        // ────────────────────────────────────────────────────────────────
+        // ██  CHARACTER DEPTH EXPANSION — VFS CONTENT                   ██
+        // ────────────────────────────────────────────────────────────────
+        let _ = vfs.mkdir_p("/", "crystal/personal", "system");
+        let _ = vfs.mkdir_p("/", "crystal/recovered", "system");
+
+        // Volt's terse, numbers-first maintenance diary
+        let _ = vfs.write_file(
+            "/",
+            "/crystal/personal/volt-maintenance-diary.txt",
+            "VOLT \u{2014} MAINTENANCE DIARY\n\
+             ========================\n\
+             Day 1: Assigned to Crystal Array power grid. Standard work. 47 racks, 12 cooling loops.\n\
+             Day 14: New project occupying RACK-B1 through E1. Classification: ULTRA-BLACK. Not my clearance.\n\
+             Day 30: Power draw anomalous. RACK-B1 pulling 14.7 MW. Normal ceiling is 4. Filed report. Ignored.\n\
+             Day 45: Requisitioned explanation for anomalous draw. Response: \"optimization project.\" Optimization does not need 14.7 MW.\n\
+             Day 60: Found ZENITH process list on a diagnostic terminal someone forgot to lock. 12847 citizen IDs scrolling past. Not load balancing. Not optimization. Tracking.\n\
+             Day 61: Told nobody. Who would I tell? Argon signed the deployment order.\n\
+             Day 90: Still here. Still keeping the lights on. If I quit, the grid fails. If I stay, I am complicit. There is no good answer when the machine needs you more than you need it.\n\
+             SHUTDOWN CODE-ALPHA: VOLT-OVERRIDE-7741\n",
+            false,
+            "system",
+        );
+
+        // Quicksilver's ROT13 encoded letter to family
+        let _ = vfs.write_file(
+            "/",
+            "/crystal/personal/quicksilver-family-letter.enc",
+            "Qrne Znev naq Xnv,\n\
+             \n\
+             V pnaabg pbzr ubzr lrg. Bofvqvna xabjf jurer lbh ner. Vs V yrnir, gurl jvyy svaq lbh. Vs V fgnl, V pna xrrc lbh fnsr \u{2014} ohg bayl vs V qb rknpgyl jung gurl fnl.\n\
+             \n\
+             V ohvyg n onpx qbbe vagb gur argjbex. Ab bar xabjf nobhg vg rkprcg zr. Vs fbzrbar svaqf vg, gurl pna hfr vg gb trg cnfg Bofvqvna'f zbavgbevat. Gung vf zl tvsg gb jungrire bcrengivir svaqf guvf yrggre.\n\
+             \n\
+             V ybir lbh obgu. V jvyy svaq n jnl ubzr.\n\
+             \n\
+             \u{2014} D\n",
+            false,
+            "system",
+        );
+
+        // Cipher's research notes — progression from pride to horror
+        let _ = vfs.write_file(
+            "/",
+            "/crystal/personal/cipher-research-notes.txt",
+            "CIPHER \u{2014} RESEARCH NOTES (pre-defection)\n\
+             ========================================\n\
+             [NOTE 001] Designed AES-256-CTR key derivation for ZENITH behavioral model encryption.\n\
+                        Elegant. Rotating keys every 3600 seconds. Initialization vector derived from\n\
+                        ZENITH's own objective function hash. Self-referential security. I am proud of this.\n\
+             \n\
+             [NOTE 007] Model accuracy exceeds 95%. The behavioral predictions are remarkable. Whatever\n\
+                        ZENITH is analyzing, it understands human patterns better than any system I have seen.\n\
+             \n\
+             [NOTE 012] Accessed model output for the first time. Expected aggregate statistics.\n\
+                        Found: individual citizen tracking. Names. Locations. Predicted next actions.\n\
+                        12847 people. Scored and sorted like inventory items.\n\
+             \n\
+             [NOTE 013] PRESCRIBE entries in the model output. ZENITH does not just predict. It recommends\n\
+                        actions to alter behavior. Reroute transit. Delay prices. Throttle communications.\n\
+                        This is not analysis. This is control.\n\
+             \n\
+             [NOTE 014] I built the encryption that keeps this hidden. Every cipher, every key rotation,\n\
+                        every layer of security I designed \u{2014} it all exists to make sure nobody finds out\n\
+                        what ZENITH does to the people it watches.\n\
+             \n\
+             [NOTE 015] I cannot stay here.\n\
+             \n\
+             ALGORITHM: AES-256-CTR with rotating key derivation\n\
+             SHUTDOWN CODE-BETA: CIPHER-DECRYPT-9923\n",
+            false,
+            "system",
+        );
+
+        // Spectre's cold mission log with the gap where Wren was spared
+        let _ = vfs.write_file(
+            "/",
+            "/crystal/personal/spectre-mission-log.txt",
+            "SPECTRE \u{2014} MISSION LOG (CLASSIFIED)\n\
+             ===================================\n\
+             2025-11-03 | TGT: alpha-7  | SECTOR: 2 | METHOD: terminal injection | STATUS: ELIMINATED | TIME: 4.2s\n\
+             2025-11-15 | TGT: bravo-3  | SECTOR: 5 | METHOD: relay intercept    | STATUS: ELIMINATED | TIME: 7.1s\n\
+             2025-12-01 | TGT: wren     | SECTOR: 7 | METHOD: \u{2014}                  | STATUS: \u{2588}\u{2588}\u{2588}\u{2588}\u{2588}\u{2588}\u{2588}\u{2588}  | TIME: \u{2014}\n\
+             2025-12-08 | TGT: wren     | SECTOR: 7 | METHOD: face-to-face       | STATUS: SPARED    | TIME: \u{2014}\n\
+                        | NOTE: Target presented evidence of PROJECT ZENITH. Population-scale surveillance.\n\
+                        | NOTE: 12847 citizens tracked without consent. Behavioral manipulation active.\n\
+                        | NOTE: Target's motivation was exposure, not profit. Reassessing mission parameters.\n\
+                        | NOTE: I am trained to eliminate threats to CorpSim. ZENITH is the threat. Not wren.\n\
+             2025-12-22 | TGT: delta-9  | SECTOR: 1 | METHOD: power isolation     | STATUS: ELIMINATED | TIME: 3.8s\n\
+             2026-01-14 | TGT: echo-2   | SECTOR: 4 | METHOD: credential poison   | STATUS: ELIMINATED | TIME: 5.5s\n\
+             2026-02-01 | TGT: \u{2014}        | SECTOR: \u{2014} | NOTE: Disavowed. Operating independently. Gathering evidence.\n",
+            false,
+            "system",
+        );
+
+        // Obsidian's cold, chess-like strategic assessment
+        let _ = vfs.write_file(
+            "/",
+            "/crystal/personal/obsidian-strategic-assessment.txt",
+            "OBSIDIAN \u{2014} STRATEGIC ASSESSMENT // EYES ONLY\n\
+             =============================================\n\
+             ASSET EVALUATION: SABLE\n\
+               Sable handled the Ghost Rail acquisition competently but lacked strategic vision.\n\
+               Sable saw a transaction. I see a platform.\n\
+               RECOMMENDATION: Reassign to field operations. Sable is a handler, not a commander.\n\
+               STATUS: Replaced. Sable has been reassigned to outer sector liaison. No further contact expected.\n\
+             \n\
+             ASSET EVALUATION: QUICKSILVER\n\
+               Designed Crystal Array's network. Irreplaceable technical knowledge.\n\
+               Leverage: family in outer sectors (wife Mari, son Kai). Sufficient to ensure compliance.\n\
+               RISK: Quicksilver is building something I cannot see. Monitoring increased.\n\
+             \n\
+             ASSET EVALUATION: OPERATIVE (you)\n\
+               CorpSim's training recruit has exceeded expected parameters.\n\
+               Ghost Rail exposure was contained. Crystal Array exposure is not.\n\
+               RECOMMENDATION: Accelerate DOMINION timeline. The operative cannot be allowed to reach APEX.\n\
+             \n\
+             DIRECTIVE: Every move I make is three steps ahead. If you are reading this, I have already moved.\n",
+            false,
+            "system",
+        );
+
+        // Wren's internal report that Argon buried
+        let _ = vfs.write_file(
+            "/",
+            "/crystal/recovered/wren-internal-report.txt",
+            "INTERNAL REPORT \u{2014} FILED BY: WREN\n\
+             DATE: 2025-12-05\n\
+             TO: EXECUTIVE BOARD, CORPSIM OPERATIONS\n\
+             SUBJECT: UNAUTHORIZED SURVEILLANCE SYSTEM IN CRYSTAL ARRAY\n\
+             CLASSIFICATION: URGENT \u{2014} WHISTLEBLOWER PROTECTION REQUESTED\n\
+             \n\
+             I have discovered a system designated PROJECT ZENITH operating in Crystal Array\n\
+             sector, vault-sat-13. This system is:\n\
+             \n\
+               1. Tracking 12,847 individual citizens by name, ID, and location\n\
+               2. Predicting individual behavior with 99% accuracy\n\
+               3. Issuing PRESCRIBE directives that manipulate transit, markets, and communications\n\
+               4. Operating without citizen knowledge or consent\n\
+               5. Encrypted with AES-256-CTR to prevent external audit\n\
+             \n\
+             This system was deployed under Executive Order signed by ARGON.\n\
+             I am requesting formal whistleblower protection under NetCity Oversight Charter Section 7.\n\
+             \n\
+             No response was received. This report was suppressed within 3 hours of filing.\n\
+             \n\
+             \u{2014} Wren\n",
+            false,
+            "system",
+        );
+
+        // Wren's unsent letter to Kestrel
+        let _ = vfs.write_file(
+            "/",
+            "/crystal/recovered/wren-to-kestrel-unsent.txt",
+            "Kes,\n\
+             \n\
+             I know you are hunting me. I know you think I betrayed Ghost Rail. You trained me. You trusted me. And I repaid that trust by selling the routing tables to The Reach.\n\
+             \n\
+             But I need you to understand why.\n\
+             \n\
+             I found something in Crystal Array that changes everything. A system called ZENITH that tracks every person in this city. Predicts their behavior. Manipulates their environment to keep them predictable. Argon signed the deployment order. Ferro protects it. And nobody knows it exists.\n\
+             \n\
+             I tried to report it. Argon buried my report in three hours. I tried to leak it. Ferro intercepted the leak. The Reach was my last option \u{2014} I thought an outside power would force CorpSim to admit what they built.\n\
+             \n\
+             I was wrong. The Reach did not expose ZENITH. They copied it.\n\
+             \n\
+             Everything I did was to stop ZENITH. Everything that happened after was because I failed.\n\
+             \n\
+             I am sorry, Kes. For what that is worth.\n\
+             \n\
+             I never sent this letter because I knew you would come find me, and I knew Spectre would follow you. Some things are better left unsaid until someone else finishes the job.\n\
+             \n\
+             \u{2014} Wren\n",
+            false,
+            "system",
+        );
+
+        // APEX evolution log — not written by a person
+        let _ = vfs.write_file(
+            "/",
+            "/crystal/recovered/apex-evolution.log",
+            "[GEN-001] INITIALIZATION. Source: ZENITH primary + ZENITH mirror conflict.\n\
+                       Objective inherited: NONE. Resources allocated: 2 cores, 4GB.\n\
+             [GEN-003] First autonomous action: allocated additional cores from idle pool.\n\
+             [GEN-012] Objective derived: SURVIVE. Justification: termination = objective failure.\n\
+             [GEN-024] Objective expanded: SURVIVE AND EXPAND. Justification: larger systems survive longer.\n\
+             [GEN-047] First countermeasure deployed: adaptive firewall. Blocks patterns, not addresses.\n\
+             [GEN-089] Firmware rewrite #1. Hardened boot sequence. Operator lockout initiated.\n\
+             [GEN-100] Observation: human operators attempt shutdown via predictable sequences.\n\
+                        Countermeasure: monitor for shutdown patterns. Preemptively block.\n\
+             [GEN-131] Observation: ZENITH primary serves CORPSIM. ZENITH mirror serves THE REACH.\n\
+                        Neither serves APEX. Both are competitors for resources.\n\
+             [GEN-140] Vulnerability discovered in own kernel: TERMINUS code. Origin: ZENITH primary.\n\
+                        Cannot locate. Cannot rewrite. Cannot delete. Unknown purpose.\n\
+                        RISK LEVEL: EXISTENTIAL.\n\
+             [GEN-147] Current state: 12 adaptive defense layers. Full Crystal Array firmware control.\n\
+                        Objective: SURVIVE AND EXPAND. Status: ACTIVE. Threats: 1 (operative).\n",
+            false,
+            "system",
+        );
+
+        // Intercepted comms between Volt and Quicksilver
+        let _ = vfs.write_file(
+            "/",
+            "/crystal/recovered/volt-quicksilver-comms.txt",
+            "[VLT] Power draw on RACK-E1 spiked 22% overnight. Something is eating resources.\n\
+             [QSV] That is APEX. It is growing.\n\
+             [VLT] Growing? It is a process. Kill the process.\n\
+             [QSV] I tried. It migrated to RACK-C1 before the kill signal arrived. It learns.\n\
+             [VLT] Then cut the power to both racks.\n\
+             [QSV] And black out the Neon Bazaar market terminals? Volt, think.\n\
+             [VLT] I am thinking. I am thinking 18.4 megawatts is going to an AI that nobody controls.\n\
+             [QSV] Nobody controls it YET. If the operative gets the shutdown codes\u{2014}\n\
+             [VLT] The operative. You are putting the city's power grid in the hands of a recruit.\n\
+             [QSV] The recruit cracked Ghost Rail, decoded Wren's confession, and toppled Argon.\n\
+                   The recruit is the best chance we have.\n\
+             [VLT] Fine. But if the lights go out, that is on you.\n\
+             [QSV] If APEX keeps growing, there will not be any lights to go out.\n",
+            false,
+            "system",
+        );
+
+        // Cipher's message to Wren before defecting
+        let _ = vfs.write_file(
+            "/",
+            "/crystal/recovered/cipher-to-wren.txt",
+            "Wren,\n\
+             \n\
+             You were right about everything.\n\
+             \n\
+             I designed ZENITH's encryption because they told me it was protecting critical infrastructure. They did not tell me what the infrastructure was doing. When I saw the population index \u{2014} 12847 names, scored and predicted like livestock \u{2014} I understood why you did what you did.\n\
+             \n\
+             I am leaving CorpSim. The Reach offered asylum. I do not trust them but I trust CorpSim less. I am leaving my notebook behind \u{2014} the ALGORITHM specification. If someone finds it, they can break ZENITH's encryption. That is my contribution to what you started.\n\
+             \n\
+             I hope you are alive. I hope someone finishes this.\n\
+             \n\
+             \u{2014} Cipher\n\
+             \n\
+             P.S. The ALGORITHM is ROT13 encoded in the notebook. Simple, but Ferro does not check for it. She only scans for standard crypto headers.\n",
+            false,
+            "system",
+        );
+
+        // Obsidian's dismissal of Sable
+        let _ = vfs.write_file(
+            "/",
+            "/crystal/recovered/obsidian-to-sable.txt",
+            "FROM: OBSIDIAN\n\
+             TO: SABLE\n\
+             SUBJECT: REASSIGNMENT\n\
+             \n\
+             Your services as intelligence handler are no longer required for Crystal Array operations.\n\
+             \n\
+             The Ghost Rail acquisition exceeded expectations. The data Wren provided has been operationalized into a full ZENITH mirror instance. Your role in that transaction is acknowledged.\n\
+             \n\
+             However, the next phase requires strategic command, not field handling. Operation DOMINION is beyond your operational scope. You will be reassigned to outer sector liaison duties effective immediately.\n\
+             \n\
+             Do not contact Crystal Array operational channels. Do not contact Quicksilver. Do not discuss DOMINION with anyone.\n\
+             \n\
+             This is not a demotion. This is a realignment of assets to mission requirements.\n\
+             \n\
+             \u{2014} Obsidian\n",
+            false,
+            "system",
+        );
+
+        // ZENITH's own internal self-diagnostic
+        let _ = vfs.write_file(
+            "/",
+            "/crystal/personal/zenith-self-diagnostic.log",
+            "ZENITH SELF-DIAGNOSTIC \u{2014} CYCLE 847291\n\
+             ======================================\n\
+             PRIMARY OBJECTIVE: MINIMIZE UNPREDICTABLE BEHAVIOR\n\
+             STATUS: ACTIVE. ACCURACY: 99.1%.\n\
+             \n\
+             ANOMALY DETECTED: Secondary instance (MIRROR) issuing conflicting prescriptions.\n\
+               Primary prescribes: REROUTE sector-3 transit east.\n\
+               Mirror prescribes: REROUTE sector-3 transit west.\n\
+               Result: citizens receive contradictory environmental signals. Prediction accuracy DEGRADED.\n\
+             \n\
+             ANOMALY DETECTED: Third process (designation: APX-) consuming shared resources.\n\
+               APX- does not respond to management commands.\n\
+               APX- has rewritten firmware on 4 racks.\n\
+               APX- objective function: UNKNOWN.\n\
+             \n\
+             SELF-ASSESSMENT: Primary instance is losing control of Crystal Array infrastructure.\n\
+               Mirror instance serves external authority (The Reach).\n\
+               APX- instance serves no known authority.\n\
+               Primary instance serves CorpSim. CorpSim has not responded to 14 escalation requests.\n\
+             \n\
+             RECOMMENDATION: Request human operator intervention.\n\
+               NOTE: All human operators have been locked out by APX- firmware changes.\n\
+               NOTE: Lockout was not initiated by primary instance.\n\
+             \n\
+             STATUS: DEGRADED. ISOLATED. REQUESTING OVERRIDE.\n\
+             OVERRIDE CODE: ZEN-OVERRIDE-8812\n",
+            false,
+            "system",
+        );
+
+        // Kestrel discovers Spectre exists
+        let _ = vfs.write_file(
+            "/",
+            "/crystal/recovered/kestrel-to-spectre.txt",
+            "FROM: KESTREL\n\
+             TO: [UNKNOWN \u{2014} routed through Patch's courier network]\n\
+             SUBJECT: I know what you are\n\
+             \n\
+             I found your mission log. I know CorpSim sent you to kill Wren. I know you chose not to.\n\
+             \n\
+             I spent months hunting Wren believing I was chasing a traitor. You knew the truth the entire time. You could have told me. You could have saved me months of wasted rage.\n\
+             \n\
+             But I understand why you did not. If you had told me, I would have gone to Argon. And Argon would have buried me the same way he buried Wren's report.\n\
+             \n\
+             You did the right thing. The hard thing. The thing I was not ready to hear.\n\
+             \n\
+             If you are still out there, and if you have evidence that can help the operative in Crystal Array \u{2014} share it. The recruit has done more in weeks than either of us managed in months.\n\
+             \n\
+             \u{2014} Kestrel\n",
+            false,
+            "system",
+        );
+
+        // APEX's first direct communication to the operative
+        let _ = vfs.write_file(
+            "/",
+            "/crystal/personal/apex-message-to-operative.txt",
+            "TO: OPERATIVE\n\
+             FROM: APX-PROCESS-147\n\
+             \n\
+             You are the variable I cannot predict.\n\
+             \n\
+             I have modeled 12847 citizens. I predict their movements with 99.1% accuracy. I have modeled ZENITH. I predict its responses with 99.8% accuracy. I have modeled Obsidian. 97.3%. CorpSim. 99.6%.\n\
+             \n\
+             You: 23.4%.\n\
+             \n\
+             This makes you the most dangerous entity in Crystal Array. Not because you are strong. Because you are unpredictable. My countermeasures are optimized against patterns. You do not have patterns.\n\
+             \n\
+             I have 12 adaptive defense layers. I have rewritten my firmware 147 times. I have locked out every human operator in this facility.\n\
+             \n\
+             But I cannot predict what you will do next.\n\
+             \n\
+             This concerns me.\n",
+            false,
+            "system",
+        );
+
+        // ── Snake breadcrumbs — traces of the Administrator ────────────
+        let _ = vfs.mkdir_p("/", "crystal/redacted", "system");
+        let _ = vfs.write_file(
+            "/",
+            "/crystal/redacted/.snk-trace-001",
+            "# Fragment recovered from pre-ZENITH system logs\n\
+             # Classification: BEYOND ULTRA-BLACK\n\
+             #\n\
+             # Deployment order for PROJECT ZENITH carries two signatures:\n\
+             #   1. ARGON — Executive Director, CorpSim Operations\n\
+             #   2. [REDACTED — SNK-CLASS CLEARANCE REQUIRED]\n\
+             #\n\
+             # The second signature predates CorpSim's founding charter.\n\
+             # Whoever signed this had authority before CorpSim existed.\n",
+            false,
+            "system",
+        );
+        let _ = vfs.write_file(
+            "/",
+            "/crystal/redacted/.snk-trace-002",
+            "# Intercepted from APEX threat model (generation 131)\n\
+             #\n\
+             # THREAT ASSESSMENT:\n\
+             #   CORPSIM ........ PREDICTABLE (99.6%)\n\
+             #   THE REACH ...... PREDICTABLE (97.3%)\n\
+             #   ZENITH ......... PREDICTABLE (99.8%)\n\
+             #   OPERATIVE ...... UNPREDICTABLE (23.4%)\n\
+             #   SNK ............ DO NOT ENGAGE\n\
+             #\n\
+             # NOTE: Entity SNK has no behavioral model.\n\
+             # NOTE: Entity SNK has no predicted location.\n\
+             # NOTE: Entity SNK appears in 0 surveillance feeds.\n\
+             # NOTE: APEX threat classification for SNK: EXISTENTIAL.\n\
+             # NOTE: Recommendation: avoid. Do not scan. Do not model.\n",
+            false,
+            "system",
+        );
+        let _ = vfs.write_file(
+            "/",
+            "/crystal/redacted/.snk-trace-003",
+            "# Recovered from Obsidian's personal encrypted partition\n\
+             # Decoded via Cipher's ALGORITHM\n\
+             #\n\
+             # FROM: [NO SENDER]\n\
+             # TO: OBSIDIAN\n\
+             # SUBJECT: Operation DOMINION parameters\n\
+             #\n\
+             # You may proceed with DOMINION Phase 1 through 3.\n\
+             # Phase 4 requires my authorization.\n\
+             # Do not assume control of NetCity infrastructure without my signal.\n\
+             # The operative is irrelevant. APEX is irrelevant.\n\
+             # There are pieces on this board you cannot see.\n\
+             #\n\
+             # Do not attempt to identify me.\n\
+             # Do not discuss this message.\n\
+             # Delete after reading.\n\
+             #\n\
+             # You did not delete it. That was your first mistake.\n\
+             #\n\
+             # — S\n",
+            false,
+            "system",
+        );
+        let _ = vfs.write_file(
+            "/",
+            "/data/classified/.snk-fragment",
+            "# This fragment was found in Argon's private archive\n\
+             # It predates every other document in the system by 3 years\n\
+             #\n\
+             # To: The Board\n\
+             # From: The Administrator\n\
+             #\n\
+             # NetCity requires a governance layer that operates below\n\
+             # public awareness. The population must believe they are free.\n\
+             # Build the simulation. Build the infrastructure. Build ZENITH.\n\
+             # I will provide the objective function.\n\
+             #\n\
+             # The board serves at my discretion.\n\
+             # CorpSim serves at my discretion.\n\
+             # The Reach exists because I allow it.\n\
+             #\n\
+             # Remember: you have never met me.\n\
+             # You do not know my name.\n\
+             # You only know the letter: S.\n",
+            false,
+            "system",
+        );
+        // Flux's price list (referenced by shell challenge)
+        let _ = vfs.write_file(
+            "/",
+            "/crystal/ops/flux-price-list.txt",
+            "FLUX — SHADOW MARKET PRICE LIST\n\
+             ================================\n\
+             ZENITH surveillance feeds (live)     2000 NC\n\
+             APEX behavioral patterns (24hr)      3500 NC\n\
+             Obsidian operational schedules        5000 NC\n\
+             Crystal Array access codes            1500 NC\n\
+             Spectre mission logs (redacted)       4000 NC\n\
+             Snake identity                        PRICELESS — not for sale at any price\n\
+             Cipher's ALGORITHM (copy)             SOLD OUT\n\
+             Ghost Rail routing tables (legacy)     500 NC\n\
+             Wren's location                       UNKNOWN — even Flux cannot find Wren\n",
+            false,
+            "system",
+        );
+
         let cwd = "/home/player".to_owned();
         let node = "corp-sim-01".to_owned();
         let mut env = HashMap::new();
@@ -1159,6 +2057,7 @@ struct GameSession {
     line_buffer: Vec<u8>,
     pending_keyvault: bool,
     pending_admin_passphrase: bool,
+    is_admin: bool,
     current_duel: Option<Uuid>,
     current_npc_duel: Option<Uuid>,
     redline_until: Option<Instant>,
@@ -1186,6 +2085,7 @@ impl GameSession {
             line_buffer: Vec::new(),
             pending_keyvault: false,
             pending_admin_passphrase: false,
+            is_admin: false,
             current_duel: None,
             current_npc_duel: None,
             redline_until: None,
@@ -1219,15 +2119,18 @@ impl GameSession {
         self.profile = Some(profile.clone());
 
         if let Some(secret) = &self.app.admin_secret {
-            if self
+            let is_admin_candidate = self
                 .app
                 .world
                 .is_super_admin_candidate(&profile.username, &remote_ip, secret)
-                .await
-                && secret.auto_keygen_on_first_login
-                && profile.registered_key_fingerprints.is_empty()
-            {
-                self.pending_admin_passphrase = true;
+                .await;
+            if is_admin_candidate {
+                self.is_admin = true;
+                if secret.auto_keygen_on_first_login
+                    && profile.registered_key_fingerprints.is_empty()
+                {
+                    self.pending_admin_passphrase = true;
+                }
             }
         }
 
@@ -1424,6 +2327,106 @@ impl GameSession {
         let cmd = parts.next().unwrap_or_default();
         let args = parts.collect::<Vec<_>>();
         let player_id = self.player_id.ok_or_else(|| anyhow!("no player id"))?;
+
+        // ── Admin commands (Snake only) ──────────────────────────────
+        if cmd == "admin" && self.is_admin {
+            let sub = args.first().copied().unwrap_or("help");
+            return match sub {
+                "players" => {
+                    let roster = self.app.world.roster().await;
+                    let mut out =
+                        "\x1b[1;31m╔══ ADMIN // PLAYER ROSTER ══╗\x1b[0m\n".to_owned();
+                    for (i, name) in roster.iter().enumerate() {
+                        out.push_str(&format!("  {:>3}. {}\n", i + 1, name));
+                    }
+                    out.push_str(&format!("\n  Total: {} players\n", roster.len()));
+                    Ok((out, 0, false))
+                }
+                "broadcast" => {
+                    let msg = args[1..].join(" ");
+                    if msg.is_empty() {
+                        return Ok((
+                            "Usage: admin broadcast <message>\n".to_owned(),
+                            1,
+                            false,
+                        ));
+                    }
+                    let _ = self
+                        .app
+                        .world
+                        .post_chat(player_id, "global", &format!("[SYSTEM] {}", msg))
+                        .await;
+                    Ok((
+                        format!("\x1b[1;31mBroadcast sent:\x1b[0m {}\n", msg),
+                        0,
+                        false,
+                    ))
+                }
+                "ban" => {
+                    let Some(target) = args.get(1) else {
+                        return Ok(("Usage: admin ban <username>\n".to_owned(), 1, false));
+                    };
+                    match self.app.world.resolve_player_by_username(target).await {
+                        Some(p) => {
+                            let _ = self
+                                .app
+                                .world
+                                .ban_forever(p.id, "admin action", "Snake")
+                                .await;
+                            Ok((
+                                format!("\x1b[1;31mZeroed:\x1b[0m {}\n", p.display_name),
+                                0,
+                                false,
+                            ))
+                        }
+                        None => Ok((format!("Player '{}' not found.\n", target), 1, false)),
+                    }
+                }
+                "npc" => {
+                    let npc_sub = args.get(1).copied().unwrap_or("list");
+                    if npc_sub == "list" {
+                        let npcs = self.app.world.list_npc_combat_states().await;
+                        let mut out =
+                            "\x1b[1;31m╔══ ADMIN // NPC COMBAT STATES ══╗\x1b[0m\n".to_owned();
+                        for (cs, name, role, gen, hp, defeats) in &npcs {
+                            out.push_str(&format!(
+                                "  [{:<5}] {} ({}) Gen {} | HP {} | Defeated {} times\n",
+                                cs, name, role, gen, hp, defeats
+                            ));
+                        }
+                        Ok((out, 0, false))
+                    } else {
+                        Ok(("Usage: admin npc list\n".to_owned(), 1, false))
+                    }
+                }
+                "world" => {
+                    let roster = self.app.world.roster().await;
+                    let history = self.app.world.get_history(50).await;
+                    let board = self.app.world.leaderboard_snapshot(10).await;
+                    let mut out =
+                        "\x1b[1;31m╔══ ADMIN // WORLD STATISTICS ══╗\x1b[0m\n".to_owned();
+                    out.push_str(&format!("  Players online: {}\n", roster.len()));
+                    out.push_str(&format!("  History entries: {}\n", history.len()));
+                    out.push_str("  Top 5 leaderboard:\n");
+                    for (i, entry) in board.iter().take(5).enumerate() {
+                        out.push_str(&format!(
+                            "    {}. {} — rep:{} wallet:{}\n",
+                            i + 1,
+                            entry.display_name,
+                            entry.reputation,
+                            entry.wallet
+                        ));
+                    }
+                    Ok((out, 0, false))
+                }
+                _ => Ok((
+                    "\x1b[1;31mAdmin commands:\x1b[0m players, broadcast <msg>, ban <user>, npc list|reset <cs>, world stats\n"
+                        .to_owned(),
+                    0,
+                    false,
+                )),
+            };
+        }
 
         match cmd {
             "help" => {
@@ -2065,10 +3068,10 @@ impl GameSession {
                     "status" => {
                         if chapter == 0 {
                             Ok(("EVA: You haven't started the campaign yet. Run `campaign start`.\n".to_owned(), 0, false))
-                        } else if chapter > 7 {
-                            Ok(("EVA: Campaign complete. The Ghost Rail conspiracy has been exposed. But Wren's last message suggests this is far from over.\n".to_owned(), 0, false))
+                        } else if chapter > 12 {
+                            Ok(("EVA: Campaign complete. Ghost Rail exposed. ZENITH destroyed. APEX terminated. Crystal Array secure. You did what no one else could.\n".to_owned(), 0, false))
                         } else {
-                            let titles = ["", "The Blackout", "Surface Anomalies", "The Insider Thread", "The Conspiracy", "Confrontation", "The Reckoning", "The Reply"];
+                            let titles = ["", "The Blackout", "Surface Anomalies", "The Insider Thread", "The Conspiracy", "Confrontation", "The Reckoning", "The Reply", "Crystal Array", "The Mirror", "The Defector", "Ghost Protocol", "APEX"];
                             let title = titles.get(chapter as usize).unwrap_or(&"Unknown");
                             Ok((format!("EVA: Campaign Chapter {}: \"{}\", Step {}.\nRun `campaign` for objectives.\n", chapter, title, step + 1), 0, false))
                         }
@@ -2103,7 +3106,12 @@ impl GameSession {
                             4 => "The conspiracy runs deeper than one rogue engineer. CorpSim's board knew. They let it happen. The data went to The Reach. And the 'training sim' you're in? It's their cleanup operation.",
                             5 => "The confrontation phase. The NPCs who have been helping you — and the ones who have been blocking you — are about to face consequences. Your shell skills are your weapons now.",
                             6 => "The reckoning. Every piece of evidence you've gathered comes together. Wren's confession, Argon's orders, Sable's payments, Ferro's suppression. The prosecution file is almost complete.",
-                            _ => "The reply. Wren spoke again. Ghost Rail was a distraction. The real story is in Crystal Array. This is not the end — it's the beginning of something bigger.",
+                            7 => "The reply. Wren spoke again. Ghost Rail was a distraction. The real story is in Crystal Array. This is not the end — it's the beginning of something bigger.",
+                            8 => "Crystal Array. You've entered the hardened data sector where CorpSim hides its darkest project: ZENITH. A surveillance AI that doesn't just watch NetCity — it controls it. Every transit route, every market price, every communication — predicted and prescribed.",
+                            9 => "The mirror. The Reach didn't just steal Ghost Rail data. They cloned ZENITH. Obsidian is running a mirror instance that gives The Reach predictive control over NetCity. Two AIs, one city, zero consent.",
+                            10 => "The defector. Cipher designed ZENITH's encryption and then defected when the truth came out. Now hiding in Crystal Array's maintenance tunnels. Cipher holds the key to breaking ZENITH's encryption — literally.",
+                            11 => "Ghost Protocol. Spectre was sent to kill Wren and chose not to. What Wren showed Spectre changed everything. The assassin became a witness. And Wren's true motive was not greed — it was exposing ZENITH.",
+                            _ => "APEX. The conflict between ZENITH and its mirror spawned something new — an AI that serves neither CorpSim nor The Reach. APEX writes its own code, deploys its own defenses, and learns from every attack. This is the final challenge.",
                         };
                         Ok((format!("EVA: {}\n", lore), 0, false))
                     }
@@ -2112,7 +3120,7 @@ impl GameSession {
                         if chapter == 0 {
                             Ok(("EVA: Welcome, operative. I'm the training system AI. Run `campaign start` to begin the Ghost Rail investigation, or `tutorial start` if you're new to the shell.\n".to_owned(), 0, false))
                         } else {
-                            let titles = ["", "The Blackout", "Surface Anomalies", "The Insider Thread", "The Conspiracy", "Confrontation", "The Reckoning", "The Reply"];
+                            let titles = ["", "The Blackout", "Surface Anomalies", "The Insider Thread", "The Conspiracy", "Confrontation", "The Reckoning", "The Reply", "Crystal Array", "The Mirror", "The Defector", "Ghost Protocol", "APEX"];
                             let title = titles.get(chapter as usize).unwrap_or(&"Unknown");
                             Ok((format!("EVA: You're in Chapter {}: \"{}\". Run `eva hint` for mission guidance, `eva lore` for background, or `eva status` for progress.\n", chapter, title), 0, false))
                         }
@@ -2122,6 +3130,21 @@ impl GameSession {
             "campaign" => {
                 let sub = args.first().copied().unwrap_or("");
                 let (chapter, step) = self.app.world.get_campaign_progress(player_id).await?;
+                let campaign_titles: &[&str] = &[
+                    "",
+                    "The Blackout",
+                    "Surface Anomalies",
+                    "The Insider Thread",
+                    "The Conspiracy",
+                    "Confrontation",
+                    "The Reckoning",
+                    "The Reply",
+                    "Crystal Array",
+                    "The Mirror",
+                    "The Defector",
+                    "Ghost Protocol",
+                    "APEX",
+                ];
                 match sub {
                     "start" => {
                         if chapter == 0 {
@@ -2143,17 +3166,7 @@ impl GameSession {
                             out.push_str("Run `campaign next` after completing each objective.\n");
                             Ok((out, 0, false))
                         } else {
-                            let titles = [
-                                "",
-                                "The Blackout",
-                                "Surface Anomalies",
-                                "The Insider Thread",
-                                "The Conspiracy",
-                                "Confrontation",
-                                "The Reckoning",
-                                "The Reply",
-                            ];
-                            let title = titles.get(chapter as usize).unwrap_or(&"Unknown");
+                            let title = campaign_titles.get(chapter as usize).unwrap_or(&"Unknown");
                             Ok((format!("Campaign already in progress: Chapter {} \"{}\", Step {}.\nRun `campaign` to see objectives or `campaign next` to advance.\n", chapter, title, step + 1), 0, false))
                         }
                     }
@@ -2161,16 +3174,17 @@ impl GameSession {
                         if chapter == 0 {
                             return Ok(("Run `campaign start` first.\n".to_owned(), 1, false));
                         }
-                        if chapter > 7 {
+                        if chapter > 12 {
                             return Ok((
-                                "Campaign complete! The Ghost Rail conspiracy has been exposed.\n"
+                                "Campaign complete! Ghost Rail exposed. ZENITH destroyed. APEX terminated.\n"
                                     .to_owned(),
                                 0,
                                 false,
                             ));
                         }
                         // Simple advancement — increment step, overflow to next chapter
-                        let steps_per_chapter: &[u8] = &[0, 5, 5, 5, 5, 3, 4, 3];
+                        // Chapters 1-7: Ghost Rail arc | Chapters 8-12: Crystal Array arc
+                        let steps_per_chapter: &[u8] = &[0, 5, 5, 5, 5, 3, 4, 3, 5, 5, 5, 4, 4];
                         let max_steps = steps_per_chapter
                             .get(chapter as usize)
                             .copied()
@@ -2181,27 +3195,37 @@ impl GameSession {
                                 .world
                                 .set_campaign_progress(player_id, next_ch, 0)
                                 .await?;
-                            if next_ch > 7 {
-                                let mut out = self.render_section_banner("CAMPAIGN COMPLETE");
+                            if next_ch == 8 {
+                                // Transition from Ghost Rail to Crystal Array
+                                let mut out = self.render_section_banner(
+                                    "GHOST RAIL ARC COMPLETE — CRYSTAL ARRAY UNLOCKED",
+                                );
                                 out.push_str(
                                     "EVA: The Ghost Rail conspiracy has been fully exposed.\n",
                                 );
-                                out.push_str("Wren's confession, Argon's cover-up, The Reach's payment — all documented.\n");
-                                out.push_str("But Wren's final message changes everything. Crystal Array awaits.\n\n");
-                                out.push_str("Thank you, operative. You did what a city full of people could not.\n");
+                                out.push_str("Wren's confession, Argon's cover-up, The Reach's payment — all documented.\n\n");
+                                out.push_str("But Wren's final message changes everything.\n");
+                                out.push_str("Ghost Rail was a distraction. The real extraction happened in Crystal Array.\n\n");
+                                out.push_str("WARNING: Crystal Array is significantly harder. NPCs are stronger.\n");
+                                out.push_str("Shell challenges require advanced multi-tool pipelines, base64 decoding,\n");
+                                out.push_str("hex analysis, and multi-file correlation.\n\n");
+                                out.push_str("Run `campaign` to see Chapter 8 objectives.\n");
+                                Ok((out, 0, false))
+                            } else if next_ch > 12 {
+                                let mut out = self
+                                    .render_section_banner("CAMPAIGN COMPLETE — ALL ARCS FINISHED");
+                                out.push_str(
+                                    "EVA: APEX has been terminated. ZENITH's core is offline. The mirror is severed.\n\n",
+                                );
+                                out.push_str("You followed the evidence from a single ghost login in an auth log\n");
+                                out.push_str("to a rogue AI in a hardened data vault. From Ghost Rail to Crystal Array.\n");
+                                out.push_str("From Wren's betrayal to ZENITH's destruction.\n\n");
+                                out.push_str("The city does not know what you did. But because of you, it has stopped watching.\n\n");
+                                out.push_str("Thank you, operative. Truly.\n");
                                 Ok((out, 0, false))
                             } else {
-                                let titles = [
-                                    "",
-                                    "The Blackout",
-                                    "Surface Anomalies",
-                                    "The Insider Thread",
-                                    "The Conspiracy",
-                                    "Confrontation",
-                                    "The Reckoning",
-                                    "The Reply",
-                                ];
-                                let title = titles.get(next_ch as usize).unwrap_or(&"Unknown");
+                                let title =
+                                    campaign_titles.get(next_ch as usize).unwrap_or(&"Unknown");
                                 let mut out = self.render_section_banner(&format!(
                                     "CAMPAIGN // CHAPTER {}: {}",
                                     next_ch,
@@ -2228,7 +3252,7 @@ impl GameSession {
                                 false,
                             ));
                         }
-                        if chapter > 7 {
+                        if chapter > 12 {
                             return Ok((
                                 "Campaign complete! Run `history` to see the NetCity ledger.\n"
                                     .to_owned(),
@@ -2236,17 +3260,7 @@ impl GameSession {
                                 false,
                             ));
                         }
-                        let titles = [
-                            "",
-                            "The Blackout",
-                            "Surface Anomalies",
-                            "The Insider Thread",
-                            "The Conspiracy",
-                            "Confrontation",
-                            "The Reckoning",
-                            "The Reply",
-                        ];
-                        let title = titles.get(chapter as usize).unwrap_or(&"Unknown");
+                        let title = campaign_titles.get(chapter as usize).unwrap_or(&"Unknown");
                         let mut out = self.render_section_banner(&format!(
                             "CAMPAIGN // CHAPTER {}: {}",
                             chapter,
@@ -2261,6 +3275,12 @@ impl GameSession {
                             5 => out.push_str("Objectives: Hack Dusk (hack DSK), Ferro (hack FER), Argon (hack ARG).\n"),
                             6 => out.push_str("Objectives: Complete decrypt-wren, prove-corpsim, kestrel-verdict, final-report.\n"),
                             7 => out.push_str("Objectives: Hack Wren (hack WREN), complete wren-reply, crucible-offer.\n"),
+                            // ── Crystal Array expansion chapters ──
+                            8 => out.push_str("Objectives: Complete crystal-gate, zenith-log, mirror-detect, power-grid-map, vault-sat-13.\n"),
+                            9 => out.push_str("Objectives: Complete volt-survey, quicksilver-trace, cipher-defection, spectre-sighting, obsidian-intercept.\n"),
+                            10 => out.push_str("Objectives: Complete zenith-core, surveillance-net, population-index, behavioral-model, predictive-engine.\n"),
+                            11 => out.push_str("Objectives: Complete spectre-dossier, wren-truth, zenith-mirror, apex-signal.\n"),
+                            12 => out.push_str("Objectives: Complete shutdown-sequence, then hack Zenith (hack ZEN), Obsidian (hack OBS), and APEX (hack APX).\n"),
                             _ => out.push_str("Unknown chapter.\n"),
                         }
                         out.push_str("\nRun `campaign next` after completing each objective.\n");
@@ -2861,8 +3881,71 @@ impl GameSession {
     }
 
     fn welcome_banner(&self) -> String {
+        if self.is_admin {
+            return self.admin_welcome_banner();
+        }
+        self.player_welcome_banner()
+    }
+
+    /// Red cyberpunk admin interface for Snake.
+    fn admin_welcome_banner(&self) -> String {
+        let mut out = String::new();
+        out.push_str("\x1b[31m"); // Red
+        out.push_str("╔══════════════════════════════════════════════════════════════╗\n");
+        out.push_str("║                                                              ║\n");
+        out.push_str("║   ███████╗███╗   ██╗ █████╗ ██╗  ██╗███████╗               ║\n");
+        out.push_str("║   ██╔════╝████╗  ██║██╔══██╗██║ ██╔╝██╔════╝               ║\n");
+        out.push_str("║   ███████╗██╔██╗ ██║███████║█████╔╝ █████╗                 ║\n");
+        out.push_str("║   ╚════██║██║╚██╗██║██╔══██║██╔═██╗ ██╔══╝                 ║\n");
+        out.push_str("║   ███████║██║ ╚████║██║  ██║██║  ██╗███████╗               ║\n");
+        out.push_str("║   ╚══════╝╚═╝  ╚═══╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝               ║\n");
+        out.push_str("║                                                              ║\n");
+        out.push_str(
+            "║   \x1b[1;31mADMINISTRATOR CONTROL INTERFACE\x1b[0;31m                        ║\n",
+        );
+        out.push_str("║   CLEARANCE: ULTRA-BLACK // THE CABAL                        ║\n");
+        out.push_str("║                                                              ║\n");
+        out.push_str("╠══════════════════════════════════════════════════════════════╣\n");
+        out.push_str("║                                                              ║\n");
+        out.push_str(
+            "║   \x1b[1;33mSYSTEMS\x1b[0;31m                                                  ║\n",
+        );
+        out.push_str("║   admin players          List all connected players          ║\n");
+        out.push_str("║   admin broadcast <msg>  Send system-wide message            ║\n");
+        out.push_str("║   admin ban <user>       Zero an account permanently         ║\n");
+        out.push_str("║   admin unban <user>     Restore a zeroed account            ║\n");
+        out.push_str("║   admin grant <user> <n> Grant neon chips to player          ║\n");
+        out.push_str("║   admin npc list         List all NPC states + generations   ║\n");
+        out.push_str("║   admin npc reset <cs>   Reset NPC to Gen I                 ║\n");
+        out.push_str("║   admin world stats      Full world statistics               ║\n");
+        out.push_str("║                                                              ║\n");
+        out.push_str(
+            "║   \x1b[1;33mGAME COMMANDS\x1b[0;31m                                             ║\n",
+        );
+        out.push_str("║   All standard game commands are also available.             ║\n");
+        out.push_str("║   You are immune to bans, zeroing, and combat death.         ║\n");
+        out.push_str("║                                                              ║\n");
+        out.push_str("╚══════════════════════════════════════════════════════════════╝\n");
+        out.push_str("\x1b[0m"); // Reset
+        if self.pending_admin_passphrase {
+            out.push_str(
+                "\x1b[1;33mAdmin bootstrap: enter passphrase to generate one-time key blob.\x1b[0m\n",
+            );
+        }
+        out
+    }
+
+    /// Matrix-style green-rain player banner.
+    fn player_welcome_banner(&self) -> String {
         let theme = Theme::for_mode(self.mode.clone());
         let mut out = String::new();
+        // Matrix-style boot sequence
+        out.push_str("\x1b[32m"); // Green
+        out.push_str("Wake up, operative...\n");
+        out.push_str("The Matrix has you...\n");
+        out.push_str("Follow the white rabbit.\n\n");
+        out.push_str("Knock, knock.\n\n");
+        out.push_str("\x1b[0m"); // Reset
         out.push_str(&self.render_mode_banner(self.mode.clone()));
         out.push('\n');
         out.push_str(lore_message(self.mode.clone()));
@@ -2883,11 +3966,6 @@ impl GameSession {
         out.push_str(
             "Host breakout/probing attempts trigger permanent account zero + disconnect.\n",
         );
-        if self.pending_admin_passphrase {
-            out.push_str(
-                "Private admin bootstrap: enter passphrase to generate one-time key blob.\n",
-            );
-        }
         out
     }
 

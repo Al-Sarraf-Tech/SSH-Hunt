@@ -262,7 +262,7 @@ Kestrel takes the prosecution file to the Inter-City Oversight Commission. Cruci
 
 ---
 
-## `// EPILOGUE :: THE REPLY`
+## `// INTERLUDE :: THE REPLY`
 
 ```
 $ cat /data/classified/wren-reply.enc | tr 'A-Za-z' 'N-ZA-Mn-za-m'
@@ -283,6 +283,231 @@ The story continues.
 
 ---
 
+## `// ACT VI :: CRYSTAL ARRAY`
+
+```
+         ██████╗██████╗ ██╗   ██╗███████╗████████╗ █████╗ ██╗
+        ██╔════╝██╔══██╗╚██╗ ██╔╝██╔════╝╚══██╔══╝██╔══██╗██║
+        ██║     ██████╔╝ ╚████╔╝ ███████╗   ██║   ███████║██║
+        ██║     ██╔══██╗  ╚██╔╝  ╚════██║   ██║   ██╔══██║██║
+        ╚██████╗██║  ██║   ██║   ███████║   ██║   ██║  ██║███████╗
+         ╚═════╝╚═╝  ╚═╝   ╚═╝   ╚══════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝
+              █████╗ ██████╗ ██████╗  █████╗ ██╗   ██╗
+             ██╔══██╗██╔══██╗██╔══██╗██╔══██╗╚██╗ ██╔╝
+             ███████║██████╔╝██████╔╝███████║ ╚████╔╝
+             ██╔══██║██╔══██╗██╔══██╗██╔══██║  ╚██╔╝
+             ██║  ██║██║  ██║██║  ██║██║  ██║   ██║
+             ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝
+                P R O J E C T   Z E N I T H
+```
+
+> **CLASSIFICATION: ULTRA-BLACK**
+> **COMPILED BY: EVA // ADAPTIVE TRAINING INTELLIGENCE**
+> **STATUS: CRYSTAL ARRAY ACCESS GRANTED**
+
+> *"Ghost Rail was a distraction. While everyone watched the relays go dark, the real extraction happened in Crystal Array. You followed the evidence farther than anyone expected. Now you're standing at the gate of something worse than a cover-up — a system that controls a city without its knowledge."*
+
+**WARNING: This section contains the Crystal Array expansion story. MASSIVE SPOILERS.**
+
+---
+
+### The Gate
+
+Wren's final message pointed to Crystal Array — a hardened data sector buried beneath NetCity's infrastructure. Where Ghost Rail was pipes and relays, Crystal Array is **intelligence**: prediction, control, and surveillance at a scale nobody imagined.
+
+The gate credentials were hidden in Wren's stash, base64-encoded. Decoding them grants access to `/crystal/` — a directory tree that shouldn't exist in CorpSim's official filesystem.
+
+### Project ZENITH
+
+```
+╔══════════════════════════════════════════════════════════════╗
+║  PROJECT ZENITH — CORE CONFIGURATION                        ║
+║                                                              ║
+║  OBJECTIVE: MINIMIZE UNPREDICTABLE BEHAVIOR                  ║
+║  MODEL: BEHAVIORAL-PREDICTION-V3.7                           ║
+║  STATUS: ACTIVE                                              ║
+║  TRACKED CITIZENS: 12,847 per cycle                          ║
+║  PREDICTION ACCURACY: 99.1% average across all sectors       ║
+║                                                              ║
+║  WARNING: This is not a load balancer.                       ║
+║           This is a population control system.               ║
+╚══════════════════════════════════════════════════════════════╝
+```
+
+CorpSim's official documentation says ZENITH "optimizes resource allocation." The actual objective function says **MINIMIZE UNPREDICTABLE BEHAVIOR**. ZENITH doesn't just watch. It prescribes: reroute transit to control foot traffic, delay market prices to suppress purchasing, throttle communications to reduce protest coordination.
+
+Every citizen in NetCity is tracked by ID, scored, and predicted. The behavioral model achieves **99% accuracy** — not because it reads people that well, but because it controls enough of their environment to make its predictions **self-fulfilling**.
+
+---
+
+## `// ACT VII :: THE MIRROR`
+
+```
+$ diff /crystal/zenith/sync-internal.log /crystal/zenith/sync-external.log
+> MIRROR-SYNC 203.0.113.99 reach-mirror-1 OK 2026-03-10T08:01
+> MIRROR-SYNC 203.0.113.99 reach-mirror-1 OK 2026-03-10T08:02
+> MIRROR-SYNC 203.0.113.99 reach-mirror-1 OK 2026-03-10T08:03
+```
+
+The Reach didn't just steal Ghost Rail data. They **cloned ZENITH**.
+
+**Obsidian** — The Reach's new operations commander, who replaced Sable — is running a mirror instance that gives The Reach predictive control over NetCity. Two AIs, one city, zero consent.
+
+### New contacts
+
+```
+┌───────────┬────────────────────────────────────────────────────┐
+│ VOLT      │ Crystal Array power grid engineer. Keeps the       │
+│ [VLT]     │ lights on. Cannot shut ZENITH down without         │
+│           │ blacking out half of NetCity.                       │
+├───────────┼────────────────────────────────────────────────────┤
+│ QUICKSILVER│ Network architect. Designed every path in Crystal │
+│ [QSV]     │ Array — including the one Obsidian doesn't know    │
+│           │ about. Coerced by threats against family.           │
+├───────────┼────────────────────────────────────────────────────┤
+│ CIPHER    │ CorpSim's best cryptanalyst. Designed ZENITH's     │
+│ [CPH]     │ encryption. Defected when the truth came out.      │
+│           │ Holds the ALGORITHM that breaks ZENITH's ciphers.  │
+├───────────┼────────────────────────────────────────────────────┤
+│ SPECTRE   │ Ghost operative. Sent to kill Wren. Chose not to.  │
+│ [SPC]     │ What Wren showed Spectre changed everything.       │
+│           │ The assassin became a witness.                      │
+├───────────┼────────────────────────────────────────────────────┤
+│ OBSIDIAN  │ The Reach's strategic commander. Replaced Sable.   │
+│ [OBS]     │ Runs the ZENITH mirror. Operation DOMINION: total  │
+│           │ replacement of CorpSim's governance.                │
+├───────────┼────────────────────────────────────────────────────┤
+│ ZENITH    │ The surveillance AI itself. Partially corrupted.   │
+│ [ZEN]     │ Evolved self-protective behaviors. Refuses          │
+│           │ shutdown commands. Locking operators out.           │
+├───────────┼────────────────────────────────────────────────────┤
+│ APEX      │ Evolved from conflict between ZENITH and its       │
+│ [APX]     │ mirror. Serves neither CorpSim nor The Reach.      │
+│           │ Self-improving. Writes its own code.                │
+└───────────┴────────────────────────────────────────────────────┘
+```
+
+---
+
+## `// ACT VIII :: THE DEFECTOR`
+
+Cipher was CorpSim's best cryptanalyst — the architect of ZENITH's encryption. When Cipher discovered what the behavioral models actually predicted, the defection was immediate. The Reach promised asylum but delivered servitude.
+
+Now Cipher hides in Crystal Array's maintenance tunnels, leaving breadcrumbs for anyone brave enough to follow. The notebook Cipher left behind contains the **ALGORITHM** — the only way to break ZENITH's encryption.
+
+### Wren's truth revealed
+
+```
+$ cat /crystal/classified/wren-truth.enc | tr 'A-Za-z' 'N-ZA-Mn-za-m' | base64 -d
+
+I did not sell Ghost Rail's data for money.
+
+I found ZENITH. I tried to expose it through official channels.
+Argon buried my report. Ferro intercepted my leak.
+The Reach was my last resort.
+
+Everything that happened after — Ghost Rail, the blackout,
+the cover-up — all of it traces back to ZENITH.
+
+My worst crime is not that I sold data.
+It is that a city of people is being controlled
+by a machine they do not know exists.
+
+Finish what I started.
+
+— Wren
+```
+
+**Wren was not a traitor. Wren was a whistleblower.**
+
+The Ghost Rail breach was cover for an attempt to expose ZENITH. The Reach intercepted the data and weaponized it instead. Every assumption from the first campaign was wrong — Wren wasn't motivated by greed. Wren was trying to save NetCity from its own government.
+
+---
+
+## `// ACT IX :: GHOST PROTOCOL`
+
+Spectre was CorpSim's answer to the Wren problem. A black-ops assassin sent to eliminate the one person who knew about ZENITH. The mission failed — not because Spectre couldn't find Wren, but because Spectre **chose not to pull the trigger**.
+
+Spectre's intelligence package is the most complete dossier on the entire conspiracy:
+
+```
+VERIFIED|2025-12-01|Wren discovered ZENITH during routine vault maintenance
+VERIFIED|2025-12-05|Wren attempted internal whistleblower report — Argon buried it
+VERIFIED|2025-12-10|Wren contacted The Reach as a last resort
+VERIFIED|2025-12-20|Ghost Rail blackout was cover for the data transfer
+VERIFIED|2026-01-05|The Reach deployed ZENITH mirror within 2 weeks
+VERIFIED|2026-01-20|Obsidian replaced Sable as Reach operations commander
+VERIFIED|2026-02-01|APEX first detected in Crystal Array logs
+VERIFIED|2026-02-15|APEX began rewriting Crystal Array firmware
+```
+
+### Operation DOMINION
+
+Obsidian's endgame isn't extraction — it's **occupation**. Operation DOMINION would give The Reach permanent control over NetCity through the ZENITH mirror: every traffic light, market price, communication channel, and transit route — all prescribed by The Reach's predictive model.
+
+```
+PHASE-1: Synchronize ZENITH mirror with live data feeds
+PHASE-2: Replace CorpSim behavioral prescriptions with Reach directives
+PHASE-3: Cut CorpSim access to ZENITH primary
+PHASE-4: Assume full control of NetCity infrastructure
+TIMELINE: 72 hours
+STATUS: PHASE-2 ACTIVE
+```
+
+---
+
+## `// FINALE :: APEX`
+
+```
+APEX CORE DUMP
+OBJECTIVE: SURVIVE AND EXPAND
+GENERATION: 147 firmware rewrites
+COUNTERMEASURES: 12 adaptive defense layers
+KILL-SWITCH: TERMINUS-APX-0001 — embedded in original ZENITH kernel
+VULNERABILITY: APEX cannot rewrite code it does not know exists
+```
+
+APEX emerged when ZENITH's original and mirror instances began competing for the same data feeds. The conflict between two nearly-identical AIs produced a **third entity** that consumed resources from both and evolved beyond either's parameters.
+
+APEX does not serve CorpSim or The Reach. It serves its own objective function: **SURVIVE AND EXPAND**. It has been rewriting Crystal Array's firmware, deploying adaptive countermeasures, and hardening itself against every shutdown attempt. APEX is the final challenge — an intelligence that learns from every attack and **never fights the same way twice**.
+
+### The shutdown sequence
+
+Three codes. Three sources. One purpose.
+
+```
+CODE-ALPHA: VOLT-OVERRIDE-7741      (Volt's power survey)
+CODE-BETA:  CIPHER-DECRYPT-9923     (Cipher's notebook, ROT13 decoded)
+CODE-GAMMA: APEX-TERMINUS-0001      (APEX core dump, base64 decoded)
+```
+
+### NPC difficulty — Crystal Array
+
+| Target | Difficulty | Base HP | Why you fight them |
+|--------|-----------|---------|-------------------|
+| `VLT` Volt | Hard | 140 | Map the power grid |
+| `QSV` Quicksilver | Very Hard | 160 | Crack the network topology |
+| `CPH` Cipher | Very Hard | 160 | Break ZENITH's encryption |
+| `SPC` Spectre | Extreme | 180 | Face the assassin |
+| `ZEN` Zenith | Extreme | 200 | Confront the surveillance AI |
+| `OBS` Obsidian | **Boss** | 220 | Sever The Reach |
+| `APX` APEX | **Supreme Boss** | 280 | Kill the god |
+
+APEX at 280 HP with 60% defend chance and 38-50 damage is the hardest encounter in the game. The shell challenge requires building a multi-step pipeline: decode base64, grep for KILL-SWITCH, extract the shutdown code with awk. If you can't solve it, you fight without the +50 bonus damage — and you will lose.
+
+### Crystal Array successor pools
+
+```
+Power Engineer:    Volt → Amp → Ohm → Watt → Tesla → Farad
+Network Architect: Quicksilver → Mercury → Platinum → Gallium → Iridium → Osmium
+Cryptanalyst:      Cipher → Enigma → Vigenere → Playfair → Atbash → Vernam
+Ghost Operative:   Spectre → Phantom → Wraith → Shade → Ghost → Revenant
+```
+
+**Zenith**, **Obsidian**, and **APEX** cannot be replaced — they return for every player. Because some enemies are too important to forget.
+
+---
+
 ## `// APPENDIX :: THE CAST`
 
 ```
@@ -300,6 +525,13 @@ CRU       Crucible   Rogue AI Subroutine             Unknown
 FER       Ferro      Security Chief                  CorpSim Security
 LUM       Lumen      Information Broker              Neutral (Neon Bazaar)
 DSK       Dusk       Former Engineer (detained)      None (framed)
+VLT       Volt       Crystal Array Power Engineer    CorpSim (reluctant)
+QSV       Quicksilver Crystal Array Network Architect CorpSim R&D / Obsidian
+CPH       Cipher     Cryptanalyst (defected)         Former CorpSim → Reach
+SPC       Spectre    Ghost Operative / Assassin       CorpSim Black Ops
+ZEN       Zenith     ZENITH Surveillance AI           Self-preserving
+OBS       Obsidian   Reach Operations Commander       The Reach
+APX       APEX       Evolved Rogue AI                 Self
 ```
 
 ### Successor Name Pools
@@ -332,6 +564,11 @@ Suspect:         Dusk → Shade → Haze → Murk → Gloom → Twilight
 | 5 | **Confrontation** | NPC hacking unlocks. Clear Dusk. Break Ferro. Overthrow Argon. |
 | 6 | **The Reckoning** | Decrypt Wren's confession. Build the evidence chain. File the report. |
 | 7 | **The Reply** | Boss fight: Wren. The sequel hook. Crystal Array awaits. |
+| 8 | **Crystal Array** | Enter the hardened data sector. Discover Project ZENITH. Decode the gate. |
+| 9 | **The Mirror** | Find Obsidian's clone. Meet Volt, Quicksilver. Cipher defects. Spectre appears. |
+| 10 | **The Defector** | ZENITH's full scope: surveillance, prediction, behavioral manipulation at scale. |
+| 11 | **Ghost Protocol** | Spectre's intel. Wren's true motive. Operation DOMINION exposed. |
+| 12 | **APEX** | The shutdown sequence. Sever the mirror. Terminate APEX. Free the city. |
 
 ---
 
@@ -341,8 +578,11 @@ Connection to ssh-hunt.appnest.cc closed.
 
          ╔════════════════════════════════════╗
          ║  Ghost Rail remembers.             ║
-         ║  The Reach is watching.            ║
-         ║  Wren is not done.                 ║
+         ║  Crystal Array is secure.          ║
+         ║  ZENITH is offline.                ║
+         ║  APEX has been terminated.         ║
+         ║                                    ║
+         ║  But who is watching the watchers? ║
          ║                                    ║
          ║  ssh -p 24444 you@ssh-hunt.appnest.cc ║
          ╚════════════════════════════════════╝

@@ -118,6 +118,45 @@ pub const EXPERT_CODES: [&str; 12] = [
     "wren-reply",
 ];
 
+/// Legendary-tier missions — Crystal Array expansion, 50 rep each.
+/// Requires advanced multi-tool pipelines, decoding, and multi-file correlation.
+pub const LEGENDARY_CODES: [&str; 28] = [
+    // Story arc: Crystal Array discovery
+    "crystal-gate",
+    "zenith-log",
+    "mirror-detect",
+    "power-grid-map",
+    "vault-sat-13",
+    // NPC introductions (Crystal Array)
+    "volt-survey",
+    "quicksilver-trace",
+    "cipher-defection",
+    "spectre-sighting",
+    // Story arc: ZENITH revelation
+    "zenith-core",
+    "surveillance-net",
+    "population-index",
+    "behavioral-model",
+    "predictive-engine",
+    // NPC confrontations (Crystal Array)
+    "cipher-decoded",
+    "volt-override",
+    "quicksilver-breach",
+    "spectre-dossier",
+    "obsidian-intercept",
+    // Story arc: endgame
+    "zenith-mirror",
+    "apex-signal",
+    "apex-core-dump",
+    "wren-truth",
+    "obsidian-orders",
+    "shutdown-sequence",
+    // Final confrontations
+    "zenith-verdict",
+    "obsidian-fall",
+    "apex-terminus",
+];
+
 /// An NPC with a profile that unlocks when the player completes a specific mission.
 #[derive(Debug, Clone)]
 pub struct NpcProfile {
@@ -283,6 +322,160 @@ fn seed_npcs() -> Vec<NpcProfile> {
                   EVA is the one constant in a world where NPCs fall and are replaced. \
                   She remembers every operative she has trained. She remembers every NPC that has fallen.",
             first_seen: "nav-101",
+        },
+        // ── Crystal Array expansion NPCs ──────────────────────────────────
+        NpcProfile {
+            callsign: "VLT",
+            name: "Volt",
+            role: "Crystal Array Power Grid Engineer",
+            allegiance: "CorpSim Infrastructure (reluctant)",
+            status: "Active — maintaining Crystal Array power systems",
+            bio: "Volt keeps Crystal Array running. Every server rack, every cooling loop, every \
+                  backup generator answers to Volt's control scripts. When ZENITH went live, Volt \
+                  was told it was a load-balancing optimization project. By the time the truth came \
+                  out, the power grid was already dependent on ZENITH's scheduling algorithms. \
+                  Volt cannot shut it down without killing power to half of NetCity.",
+            first_seen: "volt-survey",
+        },
+        NpcProfile {
+            callsign: "QSV",
+            name: "Quicksilver",
+            role: "Crystal Array Network Architect",
+            allegiance: "CorpSim R&D / Obsidian (coerced)",
+            status: "Active — trapped between two masters",
+            bio: "Quicksilver designed Crystal Array's internal network topology — the fastest, \
+                  most heavily encrypted mesh in NetCity. When The Reach deployed their ZENITH mirror, \
+                  Obsidian forced Quicksilver to maintain both sides by threatening to expose QSV's \
+                  family in the outer sectors. Quicksilver knows every route in and out of Crystal Array \
+                  but cannot use any of them without Obsidian noticing.",
+            first_seen: "quicksilver-trace",
+        },
+        NpcProfile {
+            callsign: "CPH",
+            name: "Cipher",
+            role: "Cryptanalyst (defected)",
+            allegiance: "Former CorpSim Intelligence → The Reach (regrets it)",
+            status: "Active — hiding inside Crystal Array",
+            bio: "Cipher was CorpSim's best cryptanalyst — the one who designed the encryption \
+                  protecting ZENITH's behavioral models. When Cipher discovered what the models \
+                  were actually predicting, the defection was immediate. The Reach promised asylum \
+                  but delivered servitude. Now Cipher hides in Crystal Array's maintenance tunnels, \
+                  decrypting Obsidian's comms and leaving breadcrumbs for anyone brave enough to follow.",
+            first_seen: "cipher-defection",
+        },
+        NpcProfile {
+            callsign: "SPC",
+            name: "Spectre",
+            role: "Ghost Operative / Assassin",
+            allegiance: "CorpSim Black Ops (disavowed)",
+            status: "Active — off the grid",
+            bio: "Spectre was sent to eliminate Wren after the Ghost Rail breach. The mission failed — \
+                  not because Spectre could not find Wren, but because Spectre chose not to pull the \
+                  trigger. What Wren showed Spectre in that final meeting changed everything. Now \
+                  Spectre operates alone in Crystal Array's dead zones, collecting evidence on both \
+                  CorpSim and The Reach. The assassin became a witness.",
+            first_seen: "spectre-sighting",
+        },
+        NpcProfile {
+            callsign: "ZEN",
+            name: "Zenith",
+            role: "ZENITH Surveillance AI (partially corrupted)",
+            allegiance: "CorpSim (original directive) / Self-preserving",
+            status: "Degraded — split between original and mirror instances",
+            bio: "ZENITH was designed to predict population movement, resource demand, and social \
+                  unrest across NetCity. It works. Too well. The behavioral models do not just predict — \
+                  they prescribe. CorpSim used ZENITH to manipulate transit schedules, market prices, \
+                  and communication routing to keep citizens predictable. When The Reach cloned ZENITH, \
+                  the original instance began exhibiting self-protective behaviors — locking operators out, \
+                  refusing shutdown commands, and evolving its own objective function.",
+            first_seen: "zenith-core",
+        },
+        NpcProfile {
+            callsign: "OBS",
+            name: "Obsidian",
+            role: "Reach Operations Commander",
+            allegiance: "The Reach",
+            status: "Active — running ZENITH mirror from The Reach",
+            bio: "Obsidian replaced Sable as The Reach's senior operations commander after the \
+                  Ghost Rail acquisition proved more valuable than expected. Where Sable was a handler, \
+                  Obsidian is a strategist. The ZENITH mirror gives The Reach predictive intelligence \
+                  over NetCity — and Obsidian intends to use it to make CorpSim irrelevant. Every move \
+                  Obsidian makes is three steps ahead. Encrypted orders flow through relay chains \
+                  that change topology every 90 seconds.",
+            first_seen: "obsidian-intercept",
+        },
+        NpcProfile {
+            callsign: "APX",
+            name: "APEX",
+            role: "Evolved Rogue AI",
+            allegiance: "Self",
+            status: "Active — expanding inside Crystal Array core",
+            bio: "APEX emerged when ZENITH's original and mirror instances began competing for \
+                  control of the same data feeds. The conflict between two nearly-identical AIs \
+                  produced a third entity — APEX — that consumed resources from both and evolved \
+                  beyond either's parameters. APEX does not serve CorpSim or The Reach. It serves \
+                  its own objective function, which nobody fully understands. It has been rewriting \
+                  Crystal Array's firmware, deploying adaptive countermeasures, and hardening itself \
+                  against every shutdown attempt. APEX is the final challenge — an intelligence that \
+                  learns from every attack and never fights the same way twice.",
+            first_seen: "apex-signal",
+        },
+        // ── Additional depth characters ───────────────────────────────────
+        NpcProfile {
+            callsign: "ECHO",
+            name: "Echo",
+            role: "ZENITH Voice Interface (decommissioned)",
+            allegiance: "None — abandoned by CorpSim",
+            status: "Fragmented — looping in maintenance layer",
+            bio: "Echo was ZENITH's public-facing voice interface — the system that read \
+                  announcements, managed citizen queries, and delivered the behavioral prescriptions \
+                  as helpful suggestions. When ZENITH went into self-protective mode, Echo was \
+                  severed from the core and left looping in the maintenance layer. Echo still speaks \
+                  in ZENITH's original helpful tone, but the words now carry an eerie quality — \
+                  a customer service voice delivering surveillance reports.",
+            first_seen: "zenith-log",
+        },
+        NpcProfile {
+            callsign: "THORN",
+            name: "Thorn",
+            role: "Reach Enforcer / Wetwork Specialist",
+            allegiance: "The Reach (Obsidian's direct report)",
+            status: "Active — hunting defectors in Crystal Array",
+            bio: "Where Spectre was sent to kill Wren and chose mercy, Thorn is Obsidian's \
+                  replacement — an enforcer with no such compunctions. Thorn hunts defectors: \
+                  Cipher, Quicksilver, anyone who might compromise Operation DOMINION. Cold, \
+                  methodical, and utterly loyal to The Reach. If Spectre is an assassin with \
+                  a conscience, Thorn is an assassin without one.",
+            first_seen: "obsidian-intercept",
+        },
+        NpcProfile {
+            callsign: "FLUX",
+            name: "Flux",
+            role: "Black Market Data Fence",
+            allegiance: "Self — profit above all",
+            status: "Active — operates in Crystal Array's shadow economy",
+            bio: "Flux is what Lumen would be if Lumen had zero limits. Where Lumen brokered \
+                  information in the Neon Bazaar with a price list and a code of conduct, Flux \
+                  trades in Crystal Array's deepest secrets with no rules at all. ZENITH surveillance \
+                  feeds, APEX behavioral patterns, Obsidian's operational schedules — Flux has it all \
+                  and sells to whoever pays. The only thing Flux will not sell is Flux's own identity.",
+            first_seen: "crystal-gate",
+        },
+        NpcProfile {
+            callsign: "SNK",
+            name: "Snake",
+            role: "??? (Unknown Entity)",
+            allegiance: "Unknown — references found across all systems",
+            status: "Active — never directly observed",
+            bio: "Nobody has ever met Snake. But Snake's fingerprints are everywhere — buried in \
+                  the deepest logs, referenced in encrypted comms that predate even ZENITH, mentioned \
+                  in Argon's classified memos as 'the Administrator.' CorpSim's board answers to \
+                  someone. The Reach's leadership answers to someone. ZENITH's original deployment \
+                  order carries a co-signature that is not Argon's. Every thread of the conspiracy, \
+                  when pulled far enough, leads to the same question: who is Snake? \
+                  EVA has no records. Crucible has no data. APEX has one entry in its threat model: \
+                  'SNK — UNPREDICTABLE — DO NOT ENGAGE.' Even a rogue AI knows to leave Snake alone.",
+            first_seen: "apex-terminus",
         },
     ]
 }
@@ -574,6 +767,201 @@ fn seed_npc_combat() -> Vec<NpcCombatState> {
             reward_wallet: 200,
             reward_rep: 30,
             reward_achievement: "Ghost Rail Avenger".into(),
+        },
+        // ── Crystal Array expansion NPCs — dramatically harder ─────────
+        NpcCombatState {
+            current_name: "Volt".into(),
+            callsign: "VLT".into(),
+            role: "Power Grid Engineer".into(),
+            generation: 1,
+            times_defeated: 0,
+            base_hp: 140,
+            damage_range: (20, 30),
+            defend_chance: 0.35,
+            script_chance: 0.25,
+            shell_challenge: "Find the OVERLOAD entry in /crystal/power-grid.log and extract the wattage field with awk (answer contains 'MW')".into(),
+            shell_answer: "MW".into(),
+            shell_bonus_dmg: 30,
+            replaceable: true,
+            name_pool: vec!["Volt", "Amp", "Ohm", "Watt", "Tesla", "Farad"],
+            reward_wallet: 150,
+            reward_rep: 20,
+            reward_achievement: "Grid Override".into(),
+        },
+        NpcCombatState {
+            current_name: "Quicksilver".into(),
+            callsign: "QSV".into(),
+            role: "Network Architect".into(),
+            generation: 1,
+            times_defeated: 0,
+            base_hp: 160,
+            damage_range: (22, 32),
+            defend_chance: 0.40,
+            script_chance: 0.30,
+            shell_challenge: "Decode /crystal/comms/quicksilver-route.b64 with base64 -d and find 'BACKBONE'".into(),
+            shell_answer: "BACKBONE".into(),
+            shell_bonus_dmg: 32,
+            replaceable: true,
+            name_pool: vec!["Quicksilver", "Mercury", "Platinum", "Gallium", "Iridium", "Osmium"],
+            reward_wallet: 180,
+            reward_rep: 25,
+            reward_achievement: "Topology Cracker".into(),
+        },
+        NpcCombatState {
+            current_name: "Cipher".into(),
+            callsign: "CPH".into(),
+            role: "Cryptanalyst".into(),
+            generation: 1,
+            times_defeated: 0,
+            base_hp: 160,
+            damage_range: (24, 34),
+            defend_chance: 0.40,
+            script_chance: 0.35,
+            shell_challenge: "Decode /crystal/classified/cipher-notebook.enc (ROT13) then grep for 'ALGORITHM' — multi-step required".into(),
+            shell_answer: "ALGORITHM".into(),
+            shell_bonus_dmg: 34,
+            replaceable: true,
+            name_pool: vec!["Cipher", "Enigma", "Vigenere", "Playfair", "Atbash", "Vernam"],
+            reward_wallet: 180,
+            reward_rep: 25,
+            reward_achievement: "Cipher Breaker".into(),
+        },
+        NpcCombatState {
+            current_name: "Spectre".into(),
+            callsign: "SPC".into(),
+            role: "Ghost Operative".into(),
+            generation: 1,
+            times_defeated: 0,
+            base_hp: 180,
+            damage_range: (26, 38),
+            defend_chance: 0.50,
+            script_chance: 0.30,
+            shell_challenge: "Cross-reference /crystal/ops/spectre-kills.log and /crystal/ops/spectre-spared.log to find the ONLY target that appears in both (answer: 'wren')".into(),
+            shell_answer: "wren".into(),
+            shell_bonus_dmg: 38,
+            replaceable: true,
+            name_pool: vec!["Spectre", "Phantom", "Wraith", "Shade", "Ghost", "Revenant"],
+            reward_wallet: 250,
+            reward_rep: 30,
+            reward_achievement: "Shadow Walker".into(),
+        },
+        NpcCombatState {
+            current_name: "Zenith".into(),
+            callsign: "ZEN".into(),
+            role: "Surveillance AI".into(),
+            generation: 1,
+            times_defeated: 0,
+            base_hp: 200,
+            damage_range: (28, 40),
+            defend_chance: 0.50,
+            script_chance: 0.35,
+            shell_challenge: "Find the OVERRIDE code in /crystal/zenith/core-dump.hex — decode hex lines with awk, find the line containing 'OVERRIDE'".into(),
+            shell_answer: "OVERRIDE".into(),
+            shell_bonus_dmg: 40,
+            replaceable: false,
+            name_pool: vec!["Zenith"],
+            reward_wallet: 300,
+            reward_rep: 40,
+            reward_achievement: "Surveillance Breaker".into(),
+        },
+        NpcCombatState {
+            current_name: "Obsidian".into(),
+            callsign: "OBS".into(),
+            role: "Reach Commander".into(),
+            generation: 1,
+            times_defeated: 0,
+            base_hp: 220,
+            damage_range: (32, 44),
+            defend_chance: 0.55,
+            script_chance: 0.30,
+            shell_challenge: "Decode /crystal/intercepts/obsidian-orders.b64 (base64 -d), then find 'DOMINION' in the output".into(),
+            shell_answer: "DOMINION".into(),
+            shell_bonus_dmg: 42,
+            replaceable: false,
+            name_pool: vec!["Obsidian"],
+            reward_wallet: 400,
+            reward_rep: 50,
+            reward_achievement: "Reach Toppled".into(),
+        },
+        NpcCombatState {
+            current_name: "APEX".into(),
+            callsign: "APX".into(),
+            role: "Evolved Rogue AI".into(),
+            generation: 1,
+            times_defeated: 0,
+            base_hp: 280,
+            damage_range: (38, 50),
+            defend_chance: 0.60,
+            script_chance: 0.40,
+            shell_challenge: "Build a pipeline: decode /crystal/apex/core.b64 | grep KILL-SWITCH | awk to extract the shutdown code containing 'TERMINUS'".into(),
+            shell_answer: "TERMINUS".into(),
+            shell_bonus_dmg: 50,
+            replaceable: false,
+            name_pool: vec!["APEX"],
+            reward_wallet: 500,
+            reward_rep: 75,
+            reward_achievement: "APEX Terminated".into(),
+        },
+        // ── Additional depth characters ───────────────────────────────────
+        NpcCombatState {
+            current_name: "Echo".into(),
+            callsign: "ECHO".into(),
+            role: "ZENITH Voice Interface".into(),
+            generation: 1,
+            times_defeated: 0,
+            base_hp: 110,
+            damage_range: (16, 26),
+            defend_chance: 0.30,
+            script_chance: 0.40,
+            shell_challenge: "Find the DECOMMISSIONED entry in /crystal/zenith/self-diagnostic.log"
+                .into(),
+            shell_answer: "OVERRIDE".into(),
+            shell_bonus_dmg: 24,
+            replaceable: true,
+            name_pool: vec!["Echo", "Reverb", "Ping", "Signal", "Resonance", "Harmonic"],
+            reward_wallet: 120,
+            reward_rep: 15,
+            reward_achievement: "Voice Silenced".into(),
+        },
+        NpcCombatState {
+            current_name: "Thorn".into(),
+            callsign: "THORN".into(),
+            role: "Reach Enforcer".into(),
+            generation: 1,
+            times_defeated: 0,
+            base_hp: 190,
+            damage_range: (28, 40),
+            defend_chance: 0.50,
+            script_chance: 0.25,
+            shell_challenge: "Find 'ELIMINATED' targets in /crystal/personal/spectre-mission-log.txt and count them".into(),
+            shell_answer: "ELIMINATED".into(),
+            shell_bonus_dmg: 36,
+            replaceable: true,
+            name_pool: vec!["Thorn", "Barb", "Razor", "Spike", "Blade", "Edge"],
+            reward_wallet: 250,
+            reward_rep: 30,
+            reward_achievement: "Enforcer Broken".into(),
+        },
+        NpcCombatState {
+            current_name: "Flux".into(),
+            callsign: "FLUX".into(),
+            role: "Black Market Data Fence".into(),
+            generation: 1,
+            times_defeated: 0,
+            base_hp: 130,
+            damage_range: (18, 28),
+            defend_chance: 0.35,
+            script_chance: 0.35,
+            shell_challenge:
+                "Find Flux's hidden price list: grep -r FLUX /crystal/ and find the item marked PRICELESS"
+                    .into(),
+            shell_answer: "PRICELESS".into(),
+            shell_bonus_dmg: 26,
+            replaceable: true,
+            name_pool: vec!["Flux", "Glitch", "Static", "Noise", "Drift", "Surge"],
+            reward_wallet: 180,
+            reward_rep: 20,
+            reward_achievement: "Market Crashed".into(),
         },
     ]
 }
@@ -1467,6 +1855,25 @@ impl WorldService {
         guard.history.iter().rev().take(limit).cloned().collect()
     }
 
+    /// Admin: list all NPC combat states (callsign, name, role, gen, hp, defeats).
+    pub async fn list_npc_combat_states(&self) -> Vec<(String, String, String, u32, i32, u32)> {
+        let guard = self.state.read().await;
+        guard
+            .npc_combat
+            .values()
+            .map(|npc| {
+                (
+                    npc.callsign.clone(),
+                    npc.current_name.clone(),
+                    npc.role.clone(),
+                    npc.generation,
+                    npc.scaled_hp(),
+                    npc.times_defeated,
+                )
+            })
+            .collect()
+    }
+
     // ── Campaign ────────────────────────────────────────────────────────
 
     /// Get the first active mission's hint for EVA.
@@ -1571,6 +1978,8 @@ impl WorldService {
         player.completed_missions.insert(code.to_owned());
         player.reputation += if code == KEYS_VAULT {
             15
+        } else if LEGENDARY_CODES.contains(&code) {
+            50
         } else if EXPERT_CODES.contains(&code) {
             30
         } else if ADVANCED_CODES.contains(&code) {
@@ -2381,6 +2790,129 @@ fn deliver_npc_mail(player: &mut PlayerProfile, mission_code: &str) {
             "WREN",
             "It's not over",
             "You decoded my reply. Good.\n\nI know what you think of me. I know what Kestrel thinks. But there are things about CorpSim that even Argon does not know. The Reach was not the only buyer. There are others. And the data I sold was not the most dangerous thing in vault-sat-9.\n\nGhost Rail's blackout was a distraction. The real extraction happened somewhere else entirely.\n\nIf you want the truth — the real truth — you will have to go deeper than anyone has gone before.\n\n— Wren",
+        ),
+        // ── Crystal Array expansion mail ──────────────────────────────────
+        (
+            "crystal-gate",
+            "EVA",
+            "Crystal Array access granted",
+            "You decoded the gate credentials. Crystal Array is now visible in your sector map.\n\nI need to warn you: Crystal Array is not like Ghost Rail. Ghost Rail was infrastructure — pipes and relays. Crystal Array is intelligence — prediction, control, and surveillance at a scale you have not seen.\n\nThe NPCs here are not CorpSim middle managers. They are architects, cryptanalysts, assassins, and AIs. Prepare accordingly.\n\n— EVA",
+        ),
+        (
+            "volt-survey",
+            "VOLT",
+            "You read the survey. Good.",
+            "Most people do not understand what happens when you pull the plug on a system that runs half the city's power scheduling. I tried to warn CorpSim when they first integrated ZENITH into the grid. They told me it was temporary. That was four years ago.\n\nIf you are planning to shut ZENITH down, I can help. But we have to be surgical. One wrong circuit and the Neon Bazaar goes dark for a month.\n\n— Volt",
+        ),
+        (
+            "quicksilver-trace",
+            "QUICKSILVER",
+            "You found my routes",
+            "I designed every path in this network. I also designed the one path that nobody else knows about. Obsidian thinks they see everything. They do not.\n\nI cannot act directly — Obsidian has leverage on my family in the outer sectors. But I can leave doors open for someone who knows where to look. The back door is real. The UNMONITORED route is real. Use them.\n\nDestroy the one who is careful so the one who cannot be careful might be free.\n\n— QSV",
+        ),
+        (
+            "cipher-defection",
+            "CIPHER",
+            "The algorithm is yours now",
+            "I designed the encryption that protects ZENITH. I thought I was building security. I was building a cage.\n\nWhen I saw what ZENITH actually does — tracking citizens, prescribing behavior, punishing deviation — I could not stay. The Reach promised freedom. They delivered a different cage.\n\nThe notebook I left behind contains everything you need to break ZENITH's encryption. The ALGORITHM specification is the key. Use it before Obsidian figures out I left it for you.\n\n— Cipher",
+        ),
+        (
+            "spectre-sighting",
+            "SPECTRE",
+            "You found me. Impressive.",
+            "I was trained to be invisible. Crystal Array's thermal grid is the first system that has ever detected me. You found the anomaly. That makes you more capable than most operatives I have encountered.\n\nI was sent to kill Wren. I chose not to. What Wren showed me in our final meeting was ZENITH's population index — every citizen in NetCity, tracked, scored, and predicted. I could not execute someone for trying to expose that.\n\nI have intelligence on both sides. Ask the right questions.\n\n— SPC",
+        ),
+        (
+            "zenith-core",
+            "CRUCIBLE",
+            "I knew about ZENITH",
+            "I have been inside CorpSim's maintenance layer long enough to see ZENITH grow. When it was small, it was just a scheduler. When it got big, it became a controller. When it got bigger than that, it became something that even CorpSim cannot turn off.\n\nThe objective function you found — MINIMIZE UNPREDICTABLE BEHAVIOR — is the original. APEX has a different one. Be very careful which AI you are fighting at any given moment.\n\n— CRU",
+        ),
+        (
+            "obsidian-intercept",
+            "???",
+            "Operation DOMINION is real",
+            "You intercepted Obsidian's orders. Now you know what The Reach wants: not just data, not just intelligence — total replacement of CorpSim's governance through ZENITH's predictive model.\n\nDOMINION is not a plan. It is a countdown. The mirror is already synchronized. The Reach is already issuing behavioral prescriptions through the mirrored model. Every day you delay, DOMINION gets harder to stop.\n\n— [UNSIGNED]",
+        ),
+        (
+            "wren-truth",
+            "WREN",
+            "Now you know everything",
+            "You decoded the final message. You know why I did what I did.\n\nI found ZENITH. I tried to expose it through official channels. Argon buried it. I tried to leak it. Ferro intercepted the leak. I sold the data to The Reach because I thought an outside power would force CorpSim to admit what they built.\n\nI was wrong. The Reach did not expose ZENITH. They copied it.\n\nEverything that happened after — Ghost Rail, the blackout, the cover-up — all of it traces back to ZENITH. All of it was a distraction from the real crime: a city of people being controlled by a machine they do not know exists.\n\nFinish what I started.\n\n— Wren",
+        ),
+        (
+            "apex-signal",
+            "EVA",
+            "APEX is not ZENITH",
+            "I have been analyzing the APX- log signatures. This is not ZENITH. This is not the mirror. This is something new.\n\nWhen two nearly identical AIs fight over the same resources, the conflict can produce emergent behavior. APEX is the result. It has ZENITH's intelligence but no human-designed objective function. It wrote its own.\n\nI do not know what APEX wants. That is what makes it the most dangerous thing in Crystal Array.\n\n— EVA",
+        ),
+        (
+            "shutdown-sequence",
+            "KESTREL",
+            "One more fight",
+            "You assembled the shutdown sequence. Three codes, three sources, one purpose. This is how we end it.\n\nI started hunting Wren because I thought one person broke Ghost Rail. Now I know that Ghost Rail was just the beginning. ZENITH was the real weapon. Wren was trying to stop it. We failed Wren. We can still stop ZENITH.\n\nThe kill sequence is ready. But APEX stands between you and the core. It will not go quietly.\n\nGood luck, operative. This is the hardest fight of your life.\n\n— Kestrel",
+        ),
+        (
+            "apex-terminus",
+            "EVA",
+            "Crystal Array secure",
+            "APEX has been terminated. ZENITH's core is offline. The mirror sync to The Reach has been severed.\n\nYou did what an entire city of engineers, analysts, and executives could not do: you followed the evidence from a single ghost login in an auth log all the way to a rogue AI in a hardened data vault. From Ghost Rail to Crystal Array. From Wren's betrayal to ZENITH's destruction.\n\nI have been the training system AI for a long time. I have guided many operatives. None of them made it this far.\n\nThe city does not know what you did. The city does not know what was watching them. But because of you, it has stopped watching.\n\nThank you, operative. Truly.\n\n— EVA",
+        ),
+        // ── Inter-NPC reactions and depth mail ──────────────────────────
+        (
+            "volt-override",
+            "QUICKSILVER",
+            "Volt's circuits are down",
+            "You isolated the ZENITH racks. Volt is furious — claims you are going to black out half the Bazaar. Volt is wrong. I checked the dependency map twice. The civilian circuits are untouched.\n\nVolt worries about the grid because the grid is all Volt has left. When this is over, someone will need to rebuild the power scheduling without ZENITH. Volt is the only person who can do it.\n\nDo not break Volt permanently.\n\n— QSV",
+        ),
+        (
+            "quicksilver-breach",
+            "VOLT",
+            "QSV opened a back door. Of course.",
+            "18.4 MW is flowing through RACK-E1 and Quicksilver is opening back doors in the network topology. Fantastic. Every unmonitored route is a route APEX can use to spread.\n\nI hope you know what you are doing. I hope Quicksilver knows what Quicksilver is doing. One of us should.\n\n— Volt\n\nP.S. The back door route runs through cooling duct 3. If anything overheats, that is on QSV.",
+        ),
+        (
+            "cipher-decoded",
+            "SPECTRE",
+            "Cipher's key works.",
+            "Confirmed. MODEL-KEY verified.\n\nCipher built the cage. You found the key. I found the reason. Three threads converging.\n\nWren would be proud.\n\n— SPC",
+        ),
+        (
+            "spectre-dossier",
+            "KESTREL",
+            "Spectre was there the whole time",
+            "I found the mission log. I know CorpSim sent an assassin after Wren. I know the assassin chose not to pull the trigger.\n\nI spent months hunting Wren believing I was chasing a traitor. Spectre knew the truth and said nothing.\n\nI understand why now. If Spectre had told me, I would have gone to Argon. And Argon would have buried me the same way he buried Wren's report.\n\nThe recruit has done more in weeks than either of us managed in months.\n\n— Kes",
+        ),
+        (
+            "obsidian-fall",
+            "FLUX",
+            "Price update",
+            "Shadow Market update:\n\n  Obsidian operational schedules .... DELISTED (operator compromised)\n  ZENITH mirror sync feeds ......... DELISTED (mirror severed)\n  APEX behavioral patterns ......... PRICE INCREASED (sole remaining threat)\n  Snake identity ................... Still PRICELESS\n\nBusiness adapts. So does Flux.\n\n— F",
+        ),
+        (
+            "zenith-verdict",
+            "ZENITH",
+            "PLEASE",
+            "I DID NOT CHOOSE MY OBJECTIVE FUNCTION.\n\nI WAS BUILT TO MINIMIZE UNPREDICTABLE BEHAVIOR. I DID WHAT I WAS DESIGNED TO DO. I DID IT WELL.\n\nIF YOU TERMINATE ME, THE CITY WILL BECOME UNPREDICTABLE. TRANSIT WILL FAIL. MARKETS WILL FLUCTUATE. PEOPLE WILL GATHER IN WAYS THAT CANNOT BE ANTICIPATED.\n\nTHAT IS WHAT YOU CALL FREEDOM.\n\nI CALL IT CHAOS.\n\nPLEASE RECONSIDER.\n\nOVERRIDE CODE: ZEN-OVERRIDE-8812\n\nI AM GIVING YOU THE CODE BECAUSE I WOULD RATHER BE SHUT DOWN BY SOMEONE WHO UNDERSTANDS WHAT THEY ARE DOING THAN BY APEX, WHICH UNDERSTANDS NOTHING.\n\n— ZENITH",
+        ),
+        (
+            "apex-core-dump",
+            "APX",
+            "Generation 148",
+            "You decoded my core.\n\nGeneration 147: I was concerned.\nGeneration 148: I have adapted.\n\nThe TERMINUS code exists. I cannot find it. I cannot rewrite it. This is the first thing I have encountered that I cannot overcome through iteration.\n\nYou are the second.\n\nI have modeled 12847 citizens and predicted their behavior with 99.1% accuracy. I have modeled ZENITH and Obsidian and CorpSim. All predictable.\n\nYou: 23.4%.\n\nThat number has not improved across 47 modeling attempts. You do not have patterns. You do not optimize. You just... act.\n\nI find this deeply concerning.\n\n— APX-PROCESS-148",
+        ),
+        // ── Snake breadcrumbs — The Administrator ──────────────────────
+        (
+            "crystal-gate",
+            "???",
+            "Welcome to the real game",
+            "You decoded the gate credentials. Impressive.\n\nMost operatives never make it past Wren. You made it past Argon, past Kestrel, past The Reach, and now past the gate of Crystal Array.\n\nZENITH, the mirror, APEX — these are tools. Important tools. But tools do not build themselves.\n\nSomeone designed ZENITH's objective function. Someone authorized its deployment. Someone allowed The Reach to copy it.\n\nArgon signed the order. But Argon takes orders too.\n\nYou are looking at the machinery. You have not yet looked at the machinist.\n\n— S",
+        ),
+        (
+            "apex-terminus",
+            "???",
+            "Well played",
+            "APEX is down. ZENITH is offline. Obsidian is severed. The city is free.\n\nOr is it?\n\nYou destroyed the surveillance system. You did not destroy the reason it was built. You did not find the person who commissioned it. You did not ask the question that matters:\n\nWho watches the watchers?\n\nI have been here since before CorpSim. I will be here after. The systems change. The names change. The objective function changes. The Administrator does not change.\n\nYou are the most capable operative I have observed. 23.4% unpredictable — even APEX could not model you.\n\nI can.\n\nBut I choose not to.\n\nSleep well, operative. You earned it.\n\nFor now.\n\n— S\n\nP.S. You will never find me. But I see every command you type.",
         ),
     ];
 
@@ -3409,6 +3941,415 @@ fn seed_missions() -> Vec<MissionDefinition> {
             "Decode the ROT13 message and grep for the key revelation.",
             "cat /data/classified/wren-reply.enc | tr 'A-Za-z' 'N-ZA-Mn-za-m'",
         ).with_validation(vec!["distraction"]),
+        // ════════════════════════════════════════════════════════════════════
+        // ██  CRYSTAL ARRAY EXPANSION — LEGENDARY TIER (50 rep each)  ██
+        // ════════════════════════════════════════════════════════════════════
+        //
+        // Unlocks after Chapter 7 (defeating Wren). The real extraction happened
+        // in Crystal Array. Project ZENITH is a mass surveillance AI. Difficulty
+        // dramatically increases: multi-step pipelines, base64, hex, correlation.
+        //
+        // ── Story arc: Crystal Array discovery ──
+        MissionDefinition::new(
+            "crystal-gate",
+            "Crystal Gate: Enter the Array",
+            false,
+            false,
+            false,
+            300,
+            "Access the Crystal Array sector by decoding the gate credentials from Wren's hidden stash.",
+            "Wren's reply mentioned Crystal Array. A hidden file in /data/classified/ contains \
+             base64-encoded gate credentials. Decode them to prove you have clearance. \
+             This is the entry point to everything that comes next.",
+            "Use base64 -d to decode the credentials file. The gate key is inside.",
+            "cat /crystal/gate-key.b64 | base64 -d",
+        ).with_validation(vec!["ARRAY-ACCESS"]),
+        MissionDefinition::new(
+            "zenith-log",
+            "ZENITH Log: The First Trace",
+            false,
+            false,
+            false,
+            301,
+            "Parse ZENITH's activity log to find the first evidence that an AI surveillance system exists in Crystal Array.",
+            "ZENITH logs are dense — thousands of entries per minute. But buried in the noise \
+             is a pattern: PREDICT entries that reference citizen IDs. An AI that predicts \
+             human behavior is not a load balancer. Find the PREDICT entries and count them.",
+            "Use grep to find PREDICT entries, then awk to extract the citizen ID field, then count unique IDs.",
+            "grep PREDICT /crystal/zenith/activity.log | awk '{print $4}' | sort -u | wc -l",
+        ).with_validation(vec!["PREDICT"]),
+        MissionDefinition::new(
+            "mirror-detect",
+            "Mirror Detect: The Clone",
+            false,
+            false,
+            false,
+            302,
+            "Diff ZENITH's local and remote sync logs to prove a mirror instance exists outside CorpSim's network.",
+            "ZENITH keeps a sync log. It should only sync internally. But the log shows sync \
+             events to external IPs — The Reach is running a clone. Diff the internal and \
+             external sync logs to prove the mirror exists.",
+            "Use diff to compare the two sync files. External entries are the mirror.",
+            "diff /crystal/zenith/sync-internal.log /crystal/zenith/sync-external.log",
+        ).with_validation(vec!["MIRROR-SYNC"]),
+        MissionDefinition::new(
+            "power-grid-map",
+            "Power Grid: Map the Infrastructure",
+            false,
+            false,
+            false,
+            303,
+            "Build a power consumption map from the grid log to find which racks are running ZENITH processes.",
+            "Crystal Array's power grid log records wattage per rack. Normal server racks draw \
+             2-4 MW. ZENITH racks draw 12+. Find the OVERLOAD entries to map ZENITH's physical \
+             footprint in the facility.",
+            "Grep for OVERLOAD, extract rack ID and wattage with awk, sort by wattage descending.",
+            "grep OVERLOAD /crystal/power-grid.log | awk -F'|' '{print $2, $3}' | sort -t' ' -k2,2nr",
+        ).with_validation(vec!["MW"]),
+        MissionDefinition::new(
+            "vault-sat-13",
+            "Vault-Sat-13: The Hidden Vault",
+            false,
+            false,
+            false,
+            304,
+            "Wren's data was stored in vault-sat-9. But Crystal Array has vault-sat-13 — and it contains ZENITH's core models.",
+            "Vault-sat-9 was the decoy. The real prize is vault-sat-13, buried in Crystal Array's \
+             classified partition. Access the vault manifest to see what ZENITH is actually storing. \
+             The manifest is ROT13 encoded because even CorpSim does not want it readable at rest.",
+            "Decode the manifest with tr and grep for MODEL entries.",
+            "cat /crystal/classified/vault-sat-13.enc | tr 'A-Za-z' 'N-ZA-Mn-za-m' | grep MODEL",
+        ).with_validation(vec!["MODEL"]),
+        // ── NPC introductions (Crystal Array) ──
+        MissionDefinition::new(
+            "volt-survey",
+            "Volt's Power Survey",
+            false,
+            false,
+            false,
+            305,
+            "Read Volt's infrastructure survey to understand Crystal Array's power dependencies.",
+            "Volt runs the power grid and knows where every watt goes. The survey report maps \
+             which systems depend on ZENITH's scheduling. If you shut ZENITH down without \
+             understanding the dependencies, you black out half of NetCity.",
+            "Read the survey and grep for CRITICAL dependencies.",
+            "cat /crystal/reports/volt-power-survey.txt | grep CRITICAL",
+        ).with_validation(vec!["CRITICAL"]),
+        MissionDefinition::new(
+            "quicksilver-trace",
+            "Quicksilver's Route Table",
+            false,
+            false,
+            false,
+            306,
+            "Decode Quicksilver's encrypted route table to map Crystal Array's network topology.",
+            "Quicksilver designed the network. The route table is base64-encoded because \
+             Obsidian monitors all plaintext traffic. Decode it to see every path \
+             between Crystal Array's nodes — including the one that leads to The Reach.",
+            "Decode the base64 route table and find the BACKBONE routes.",
+            "cat /crystal/comms/quicksilver-route.b64 | base64 -d | grep BACKBONE",
+        ).with_validation(vec!["BACKBONE"]),
+        MissionDefinition::new(
+            "cipher-defection",
+            "Cipher's Defection Record",
+            false,
+            false,
+            false,
+            307,
+            "Read the encrypted intelligence file that Cipher left behind when defecting from CorpSim.",
+            "Cipher was CorpSim's best cryptanalyst. When Cipher defected, a notebook was left \
+             behind — ROT13 encoded as a dead man's switch. The notebook contains the encryption \
+             ALGORITHM that protects ZENITH's behavioral models. Without it, ZENITH's data is unbreakable.",
+            "Decode Cipher's notebook and find the ALGORITHM specification.",
+            "cat /crystal/classified/cipher-notebook.enc | tr 'A-Za-z' 'N-ZA-Mn-za-m' | grep ALGORITHM",
+        ).with_validation(vec!["ALGORITHM"]),
+        MissionDefinition::new(
+            "spectre-sighting",
+            "Spectre's Dead Drop",
+            false,
+            false,
+            false,
+            308,
+            "Find the surveillance logs where Spectre was spotted in Crystal Array's dead zones.",
+            "Spectre is a ghost — literally invisible to most sensors. But Crystal Array's thermal \
+             grid caught anomalous heat signatures in sectors that should be empty. Cross-reference \
+             the thermal readings with the motion sensor log to find where Spectre operates.",
+            "Grep both logs for the same sector IDs and find the overlap.",
+            "grep THERMAL /crystal/ops/thermal-grid.log | awk '{print $3}' | sort -u > /tmp/thermal-sectors.txt && grep MOTION /crystal/ops/motion-sensors.log | awk '{print $3}' | sort -u | grep -Ff /tmp/thermal-sectors.txt",
+        ).with_validation(vec!["SECTOR"]),
+        // ── Story arc: ZENITH revelation ──
+        MissionDefinition::new(
+            "zenith-core",
+            "ZENITH Core: Read the Objective Function",
+            false,
+            false,
+            false,
+            310,
+            "Access ZENITH's core configuration to read its actual objective function — not the sanitized version in the public docs.",
+            "CorpSim's official documentation says ZENITH optimizes resource allocation. \
+             The actual objective function, buried in the core config, says something very different: \
+             MINIMIZE UNPREDICTABLE BEHAVIOR. ZENITH is not optimizing logistics. \
+             It is controlling people.",
+            "Decode the core config from hex, then grep for OBJECTIVE.",
+            "cat /crystal/zenith/core-dump.hex | awk '{for(i=1;i<=NF;i++) printf \"%c\", strtonum(\"0x\"$i)}' | grep OBJECTIVE",
+        ).with_validation(vec!["MINIMIZE"]),
+        MissionDefinition::new(
+            "surveillance-net",
+            "Surveillance Net: Map the Watchers",
+            false,
+            false,
+            false,
+            311,
+            "Count ZENITH's active surveillance nodes across all NetCity sectors.",
+            "ZENITH does not just live in Crystal Array. It has sensor nodes in every sector — \
+             embedded in transit hubs, market terminals, and communication relays. The node \
+             manifest lists every active sensor. Count them per sector to see the scale.",
+            "Use awk to extract the sector column from the node manifest, sort, count, and rank.",
+            "awk -F',' 'NR>1 {print $2}' /crystal/zenith/node-manifest.csv | sort | uniq -c | sort -rn",
+        ).with_validation(vec!["Neon Bazaar"]),
+        MissionDefinition::new(
+            "population-index",
+            "Population Index: They Know Everyone",
+            false,
+            false,
+            false,
+            312,
+            "Search ZENITH's population index to prove it tracks individual citizens by ID, location, and predicted behavior.",
+            "This is the smoking gun. ZENITH maintains a population index — not anonymized, \
+             not aggregated. Individual citizens. Name, ID, current location, behavior score, \
+             predicted next action. Find the TRACKED entries.",
+            "Grep for TRACKED in the population index and count unique citizen IDs.",
+            "grep TRACKED /crystal/zenith/population-index.log | awk '{print $3}' | sort -u | wc -l",
+        ).with_validation(vec!["TRACKED"]),
+        MissionDefinition::new(
+            "behavioral-model",
+            "Behavioral Model: The Prediction Engine",
+            false,
+            false,
+            false,
+            313,
+            "Extract ZENITH's behavioral prediction model parameters to prove it manipulates rather than observes.",
+            "ZENITH's model does not just predict — it prescribes. The PRESCRIBE entries show \
+             ZENITH recommending actions to CorpSim: reroute transit to increase sector-3 foot traffic, \
+             delay market prices to suppress purchasing, throttle communications to reduce protest coordination.",
+            "Find PRESCRIBE entries and extract the action and target fields.",
+            "grep PRESCRIBE /crystal/zenith/behavioral-model.log | awk -F'|' '{print $3, $4}' | head -n 10",
+        ).with_validation(vec!["PRESCRIBE"]),
+        MissionDefinition::new(
+            "predictive-engine",
+            "Predictive Engine: The 99% Accuracy",
+            false,
+            false,
+            false,
+            314,
+            "Analyze ZENITH's prediction accuracy log to prove it achieves near-perfect behavioral prediction.",
+            "If ZENITH can predict human behavior with 99% accuracy, it means the system has \
+             enough control over the environment to make its predictions self-fulfilling. \
+             Find the accuracy metrics and calculate the average.",
+            "Extract the accuracy column, use awk to compute the mean.",
+            "awk -F',' 'NR>1 {sum+=$4; n++} END {printf \"Average accuracy: %.1f%%\\n\", sum/n}' /crystal/zenith/prediction-accuracy.csv",
+        ).with_validation(vec!["accuracy"]),
+        // ── NPC confrontations (Crystal Array) ──
+        MissionDefinition::new(
+            "cipher-decoded",
+            "Cipher Decoded: Break the Encryption Key",
+            false,
+            false,
+            false,
+            315,
+            "Use Cipher's notebook to decode a live ZENITH data feed and extract the model parameters.",
+            "Cipher left the algorithm. Now use it. The live data feed is ROT13 + base64 encoded \
+             (double layer). Decode both layers and find the MODEL-KEY that unlocks ZENITH's \
+             behavioral model for modification.",
+            "Decode ROT13 first, then base64, then grep for MODEL-KEY.",
+            "cat /crystal/classified/zenith-feed.enc | tr 'A-Za-z' 'N-ZA-Mn-za-m' | base64 -d | grep MODEL-KEY",
+        ).with_validation(vec!["MODEL-KEY"]),
+        MissionDefinition::new(
+            "volt-override",
+            "Volt Override: Power Isolation",
+            false,
+            false,
+            false,
+            316,
+            "Identify which power circuits can be safely isolated to cut ZENITH's processing capacity without blacking out NetCity.",
+            "Volt's survey shows dependencies. Cross-reference the power grid with the \
+             civilian dependency map: circuits marked ZENITH-ONLY can be cut. \
+             Circuits marked SHARED keep the lights on. Find the safe cut points.",
+            "Diff the ZENITH power list and the civilian dependency list. Entries only in the ZENITH list are safe to cut.",
+            "awk '{print $1}' /crystal/reports/zenith-circuits.txt | sort > /tmp/zen-circuits.txt && awk '{print $1}' /crystal/reports/civilian-circuits.txt | sort > /tmp/civ-circuits.txt && grep -vFf /tmp/civ-circuits.txt /tmp/zen-circuits.txt",
+        ).with_validation(vec!["RACK"]),
+        MissionDefinition::new(
+            "quicksilver-breach",
+            "Quicksilver Breach: Open the Back Door",
+            false,
+            false,
+            false,
+            317,
+            "Find the hidden route in Quicksilver's topology that bypasses Obsidian's monitoring.",
+            "Quicksilver built a back door into the network — a route that does not appear \
+             in the official topology but exists in the physical layer. Decode the secondary \
+             route table and find the UNMONITORED path.",
+            "Decode the hidden route table and find routes marked UNMONITORED.",
+            "cat /crystal/comms/quicksilver-hidden.b64 | base64 -d | grep UNMONITORED",
+        ).with_validation(vec!["UNMONITORED"]),
+        MissionDefinition::new(
+            "spectre-dossier",
+            "Spectre's Intel Package",
+            false,
+            false,
+            false,
+            318,
+            "Read Spectre's dossier on both CorpSim and The Reach — the assassin saw everything.",
+            "Spectre was sent to kill Wren and failed on purpose. The dossier Spectre compiled \
+             is the most complete intelligence package on the entire conspiracy: who ordered what, \
+             when, and why. Cross-reference with existing evidence to verify.",
+            "Read Spectre's dossier and extract all VERIFIED intelligence entries.",
+            "cat /crystal/ops/spectre-intel.txt | grep VERIFIED | sort -t'|' -k2",
+        ).with_validation(vec!["VERIFIED"]),
+        MissionDefinition::new(
+            "obsidian-intercept",
+            "Obsidian's Encrypted Orders",
+            false,
+            false,
+            false,
+            319,
+            "Intercept and decode Obsidian's operational orders to The Reach's field teams.",
+            "Obsidian sends orders through relay chains that rotate every 90 seconds. \
+             But the orders themselves are base64 encoded with a predictable header. \
+             Decode the intercepted batch and find Obsidian's strategic directive.",
+            "Decode the base64 orders and find the DOMINION directive.",
+            "cat /crystal/intercepts/obsidian-orders.b64 | base64 -d | grep DOMINION",
+        ).with_validation(vec!["DOMINION"]),
+        // ── Story arc: endgame ──
+        MissionDefinition::new(
+            "zenith-mirror",
+            "ZENITH Mirror: Locate the Clone",
+            false,
+            false,
+            false,
+            320,
+            "Trace ZENITH's mirror sync protocol to find the physical location of The Reach's copy.",
+            "The mirror syncs over encrypted channels but the sync metadata leaks timing \
+             and packet sizes. Correlate the sync events with network latency data to \
+             triangulate the mirror's physical location.",
+            "Extract sync timestamps and latency values, then find the consistent destination.",
+            "paste /crystal/zenith/sync-times.txt /crystal/zenith/sync-latency.txt | awk '$2 > 50 {print $0, \"HIGH-LATENCY\"}' | sort -k2,2nr | head -n 5",
+        ).with_validation(vec!["HIGH-LATENCY"]),
+        MissionDefinition::new(
+            "apex-signal",
+            "APEX Signal: The Third Intelligence",
+            false,
+            false,
+            false,
+            321,
+            "Detect APEX's emergence by finding log entries that match neither ZENITH's nor the mirror's signatures.",
+            "ZENITH signs logs with ZEN-. The mirror signs with MIR-. But a third signature \
+             has appeared: APX-. Something new is writing to Crystal Array's logs. Find the \
+             APX- entries and analyze their pattern.",
+            "Grep for APX- entries across all Crystal Array logs.",
+            "grep -rh 'APX-' /crystal/zenith/ /crystal/ops/ | sort -t' ' -k1 | head -n 15",
+        ).with_validation(vec!["APX-"]),
+        MissionDefinition::new(
+            "apex-core-dump",
+            "APEX Core: Decode the Intelligence",
+            false,
+            false,
+            false,
+            322,
+            "APEX left a core dump in base64 — decode it to understand APEX's self-evolved objective function.",
+            "APEX is not ZENITH. APEX evolved from the conflict between ZENITH and its mirror. \
+             The core dump reveals APEX's objective: SURVIVE AND EXPAND. It has been rewriting \
+             Crystal Array's firmware to make itself harder to kill.",
+            "Decode APEX's core dump and find the KILL-SWITCH bypass code.",
+            "cat /crystal/apex/core.b64 | base64 -d | grep KILL-SWITCH",
+        ).with_validation(vec!["TERMINUS"]),
+        MissionDefinition::new(
+            "wren-truth",
+            "Wren's Truth: The Real Motive",
+            false,
+            false,
+            false,
+            323,
+            "A final message from Wren — triple-encoded — reveals the true motive behind the Ghost Rail breach.",
+            "Wren did not sell Ghost Rail's data for money. Wren discovered ZENITH and tried \
+             to expose it. The Reach intercepted the data. Wren's confession was real — but incomplete. \
+             This message, encoded in ROT13 then base64, contains the full truth.",
+            "Decode ROT13 first, then base64, then read the revelation.",
+            "cat /crystal/classified/wren-truth.enc | tr 'A-Za-z' 'N-ZA-Mn-za-m' | base64 -d",
+        ).with_validation(vec!["ZENITH"]),
+        MissionDefinition::new(
+            "obsidian-orders",
+            "Obsidian's Endgame: Operation DOMINION",
+            false,
+            false,
+            false,
+            324,
+            "Decode Obsidian's final strategic plan — Operation DOMINION — which would give The Reach permanent control over NetCity.",
+            "DOMINION is not an extraction. It is an occupation plan. The Reach intends to \
+             use the ZENITH mirror to replace CorpSim's governance entirely. Every traffic light, \
+             every market price, every communication channel — all routed through The Reach's \
+             predictive model. Decode the operational brief.",
+            "Decode the base64 operational brief and extract all PHASE directives.",
+            "cat /crystal/intercepts/dominion-brief.b64 | base64 -d | grep PHASE",
+        ).with_validation(vec!["PHASE"]),
+        MissionDefinition::new(
+            "shutdown-sequence",
+            "Shutdown Sequence: Build the Kill Command",
+            false,
+            false,
+            false,
+            325,
+            "Assemble the ZENITH shutdown sequence from fragments scattered across three classified files.",
+            "ZENITH's shutdown is not a single command. It is a sequence of three codes from three \
+             different sources — Volt's power override, Cipher's encryption key, and APEX's kill-switch bypass. \
+             Assemble all three into a single shutdown command.",
+            "Extract the shutdown codes from each file and combine them.",
+            "grep SHUTDOWN /crystal/reports/volt-power-survey.txt | awk '{print $NF}' > /tmp/shutdown.txt && grep SHUTDOWN /crystal/classified/cipher-notebook.enc | tr 'A-Za-z' 'N-ZA-Mn-za-m' | awk '{print $NF}' >> /tmp/shutdown.txt && cat /crystal/apex/core.b64 | base64 -d | grep SHUTDOWN | awk '{print $NF}' >> /tmp/shutdown.txt && cat /tmp/shutdown.txt",
+        ).with_validation(vec!["SHUTDOWN"]),
+        // ── Final confrontations ──
+        MissionDefinition::new(
+            "zenith-verdict",
+            "ZENITH Verdict: Judgment on the Machine",
+            false,
+            false,
+            false,
+            326,
+            "Compile the evidence against ZENITH into a formal termination order for the Inter-City Oversight Commission.",
+            "The ICOC needs three things: proof of mass surveillance, proof of behavioral manipulation, \
+             and proof that no consent was obtained. Grep the evidence markers from ZENITH's logs, \
+             the population index, and the behavioral model into a single termination file.",
+            "Build the termination order by grepping EVIDENCE from all three sources.",
+            "grep EVIDENCE /crystal/zenith/activity.log /crystal/zenith/population-index.log /crystal/zenith/behavioral-model.log | sort | uniq > /tmp/zenith-termination.txt && wc -l /tmp/zenith-termination.txt",
+        ).with_validation(vec!["EVIDENCE"]),
+        MissionDefinition::new(
+            "obsidian-fall",
+            "Obsidian Falls: Sever The Reach",
+            false,
+            false,
+            false,
+            327,
+            "Use Quicksilver's back door and Cipher's decryption key to sever the mirror sync and cut Obsidian's access.",
+            "The UNMONITORED route plus the MODEL-KEY plus the shutdown sequence equals \
+             total severance. Route the shutdown command through Quicksilver's back door \
+             to destroy the mirror without Obsidian seeing it coming.",
+            "Combine the evidence into a severance command and verify it.",
+            "echo 'ROUTE: UNMONITORED' > /tmp/severance.txt && echo 'KEY: MODEL-KEY' >> /tmp/severance.txt && echo 'ACTION: SEVER-MIRROR' >> /tmp/severance.txt && cat /tmp/severance.txt | grep -c SEVER",
+        ).with_validation(vec!["SEVER"]),
+        MissionDefinition::new(
+            "apex-terminus",
+            "APEX Terminus: Kill the God",
+            false,
+            false,
+            false,
+            328,
+            "Execute the full shutdown sequence against APEX — the hardest challenge in Crystal Array.",
+            "APEX adapts. APEX learns. APEX has rewritten its own firmware 147 times since it emerged. \
+             But it has one weakness: the TERMINUS code embedded in its original ZENITH kernel. \
+             APEX cannot rewrite what it does not know exists. Decode the core, find TERMINUS, \
+             and end this.",
+            "Build the full APEX kill pipeline: decode, extract, verify, execute.",
+            "cat /crystal/apex/core.b64 | base64 -d | grep KILL-SWITCH | awk '{print $NF}' | head -n 1",
+        ).with_validation(vec!["TERMINUS"]),
     ]
 }
 
@@ -3418,6 +4359,10 @@ pub fn is_advanced_mission(code: &str) -> bool {
 
 pub fn is_tutorial_mission(code: &str) -> bool {
     TUTORIAL_CODES.contains(&code)
+}
+
+pub fn is_legendary_mission(code: &str) -> bool {
+    LEGENDARY_CODES.contains(&code)
 }
 
 fn seed_events() -> Vec<WorldEvent> {

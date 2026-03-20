@@ -6,12 +6,12 @@
 
 > CI runs on self-hosted runners managed by [haskell-ci-orchestrator](https://github.com/jalsarraf0/haskell-ci-orchestrator) with build attestation. Lint, test, security, SBOM, Docker, and release jobs are unified in a single pipeline.
 
-SSH-Hunt is a publicly playable cyberpunk SSH game and terminal learning MMO. Players connect via any SSH client, learn real shell commands through story-driven missions, hack NPCs, and unravel a conspiracy in a living world where defeated characters are replaced by harder successors.
+SSH-Hunt is a publicly playable cyberpunk SSH game and terminal learning MMO. Players connect via any SSH client, learn real shell commands through story-driven missions, hack NPCs, and unravel two conspiracies — the Ghost Rail Conspiracy and the Crystal Array expansion — in a living world where defeated characters are replaced by harder successors.
 
 - Fully simulated shell and virtual filesystem, implemented in Rust
-- 76 missions across 6 difficulty tiers with a branching conspiracy narrative
-- 12 named NPCs with dossiers, mail, combat profiles, and succession mechanics
-- 7-chapter campaign mode narrated by EVA, the adaptive training AI
+- 104 missions across 7 difficulty tiers with a branching conspiracy narrative
+- 19 named NPCs with dossiers, mail, combat profiles, and succession mechanics
+- 12-chapter campaign mode spanning two story arcs, narrated by EVA, the adaptive training AI
 - NPC hacking with hybrid duel + shell challenge bonus system
 - PvP/PvE combat stance, auction house, scripts market, and daily rewards
 - Training Sim, NetCity multiplayer, and REDLINE timed mode
@@ -47,7 +47,9 @@ Ghost Rail — NetCity's transit backbone — went dark three nights ago. CorpSi
 
 You are a recruit in CorpSim's "training simulation." What they don't tell you is that every file in the sim is pulled from live infrastructure. You're not practicing — you're investigating.
 
-The conspiracy unfolds across 7 campaign chapters, 76 missions, and interactions with 12 NPCs — from allies feeding you intel to executives trying to bury the evidence. NPCs can be hacked, defeated, and replaced. The world adapts.
+The conspiracy unfolds across 12 campaign chapters, 104 missions, and interactions with 19 NPCs — from allies feeding you intel to executives trying to bury the evidence. NPCs can be hacked, defeated, and replaced. The world adapts.
+
+The story spans two arcs: the Ghost Rail Conspiracy (Chapters 1-7) and the Crystal Array expansion (Chapters 8-12), where players uncover Project ZENITH — a mass surveillance AI.
 
 **[Full story with spoilers: STORY.md](STORY.md)**
 
@@ -94,7 +96,8 @@ accept keys-vault       # required mission — register your SSH key
 ```
 Tutorial (nav-101 → pipe-101) ──> Keys Vault ──> Starter Missions
     ──> NetCity Unlock ──> Intermediate ──> Advanced ──> Expert
-    ──> Campaign Chapters ──> NPC Hacking ──> Boss Fight (Wren)
+    ──> Ghost Rail Campaign (Ch 1-7) ──> Boss Fight (Wren)
+    ──> Crystal Array Campaign (Ch 8-12) ──> Supreme Boss (APEX)
 ```
 
 ### Key systems
@@ -102,9 +105,9 @@ Tutorial (nav-101 → pipe-101) ──> Keys Vault ──> Starter Missions
 | System | Commands | Description |
 |--------|----------|-------------|
 | Tutorial | `tutorial start/next/reset` | 6-step interactive walkthrough with EVA |
-| Campaign | `campaign start/next` | 7-chapter guided story progression |
-| Missions | `missions`, `accept`, `submit` | 76 missions across 6 tiers |
-| NPCs | `dossier`, `mail`, `hack` | 12 characters with combat and dialogue |
+| Campaign | `campaign start/next` | 12-chapter story across two arcs (Ghost Rail + Crystal Array) |
+| Missions | `missions`, `accept`, `submit` | 104 missions across 7 tiers |
+| NPCs | `dossier`, `mail`, `hack` | 19 characters with combat and dialogue |
 | Combat | `hack <npc>`, `pvp challenge` | Hybrid duel + shell challenge system |
 | Economy | `shop`, `auction`, `daily` | Currency, items, and daily rewards |
 | Social | `chat`, `mail`, `leaderboard` | Global chat, NPC mail, rankings |
@@ -123,7 +126,7 @@ mode netcity            # after completing one starter mission
 
 ## Mission System
 
-76 missions organized into 6 tiers, each teaching progressively harder shell skills while advancing the Ghost Rail conspiracy:
+104 missions organized into 7 tiers, each teaching progressively harder shell skills while advancing the Ghost Rail conspiracy and Crystal Array expansion:
 
 | Tier | Count | Rep | Shell skills | Story layer |
 |------|-------|-----|-------------|-------------|
@@ -133,12 +136,13 @@ mode netcity            # after completing one starter mission
 | Advanced | 29 | 20 | awk, sed, diff, regex, multi-file, pipelines | The conspiracy — full picture |
 | Expert | 12 | 30 | ROT13, multi-source grep, full pipelines | Endgame — prosecution and reckoning |
 | Gateway | 1 | 15 | SSH key management | Keys Vault (required) |
+| Legendary | 28 | 50 | base64, hex, multi-file correlation, advanced pipelines | Crystal Array — ZENITH and APEX |
 
 Each mission has a story beat, hint, suggested command, and validation keywords.
 
 ## NPC System
 
-12 named NPCs with full backstories, dossier profiles, and an NPC mail system that delivers messages when you complete missions.
+19 named NPCs with full backstories, dossier profiles, and an NPC mail system that delivers messages when you complete missions.
 
 ```text
 dossier                 # list all discovered NPCs
@@ -153,7 +157,7 @@ NPCs are progressively unlocked — each character's dossier becomes available o
 
 ## Campaign Mode
 
-7 chapters that guide you through the Ghost Rail conspiracy in narrative order:
+12 chapters spanning two story arcs that guide you through the Ghost Rail conspiracy and the Crystal Array expansion:
 
 | Ch | Title | Theme |
 |----|-------|-------|
@@ -164,6 +168,11 @@ NPCs are progressively unlocked — each character's dossier becomes available o
 | 5 | Confrontation | NPC hacking unlocks |
 | 6 | The Reckoning | Endgame evidence chain |
 | 7 | The Reply | Boss fight + sequel hook |
+| 8 | Crystal Array | Enter the sector, discover ZENITH surveillance AI |
+| 9 | The Mirror | Find Obsidian's ZENITH clone, meet Quicksilver & Volt |
+| 10 | The Defector | Cipher's knowledge, ZENITH's scope revealed |
+| 11 | Ghost Protocol | Confront Spectre, Wren's true motive |
+| 12 | APEX | Final boss — shut down ZENITH, battle APEX |
 
 ```text
 campaign start          # begin chapter 1
@@ -186,7 +195,7 @@ stance pve              # safe from player challenges (default)
 
 ### NPC hacking
 
-Requires NetCity mode. NPCs have combat stats scaled by story importance (40 HP easy → 150 HP boss):
+Requires NetCity mode. NPCs have combat stats scaled by story importance (40 HP easy → 280 HP supreme boss):
 
 ```text
 hack FER                # start hack against Ferro
@@ -197,6 +206,18 @@ hack solve              # solve the shell challenge for bonus damage
 ```
 
 Before each attack, you can run the NPC's shell challenge (a real shell command against the VFS) and use `hack solve` to verify — bonus damage is added to your next hit.
+
+#### Crystal Array combat NPCs
+
+| NPC | Difficulty | HP | Challenge |
+|-----|-----------|-----|-----------|
+| `VLT` Volt | Hard | 140 | Map the power grid |
+| `QSV` Quicksilver | Very Hard | 160 | Crack the network topology |
+| `CPH` Cipher | Very Hard | 160 | Break ZENITH's encryption |
+| `SPC` Spectre | Extreme | 180 | Face the assassin |
+| `ZEN` Zenith | Extreme | 200 | Confront the surveillance AI |
+| `OBS` Obsidian | **Boss** | 220 | Sever The Reach |
+| `APX` APEX | **Supreme Boss** | 280 | Kill the god |
 
 ### NPC succession
 
@@ -209,7 +230,15 @@ When an NPC is defeated:
 history                 # view the NetCity history ledger
 ```
 
-Wren is the only NPC who cannot be permanently replaced — the boss returns for every player.
+Wren, Zenith, Obsidian, and APEX are not replaceable — these bosses return for every player.
+
+Crystal Array NPC successor pools:
+```
+Power Engineer:  Volt → Amp → Ohm → Watt → Tesla → Farad
+Network Architect: Quicksilver → Mercury → Platinum → Gallium → Iridium → Osmium
+Cryptanalyst:    Cipher → Enigma → Vigenere → Playfair → Atbash → Vernam
+Ghost Operative: Spectre → Phantom → Wraith → Shade → Ghost → Revenant
+```
 
 ## Command Reference
 
@@ -229,7 +258,7 @@ Wren is the only NPC who cannot be permanently replaced — the boss returns for
 `chat <global|sector|party> <message>` `keyvault register`
 
 ### Shell (simulated)
-`pwd` `cd` `ls [-l] [-la]` `cat [-n]` `head [-n N]` `tail [-n N]` `grep [-i] [-v] [-n] [-c] [-E]` `find [-name] [-type]` `wc [-l] [-w] [-c]` `sort [-r] [-n] [-u] [-k N] [-t]` `uniq [-c] [-d]` `cut [-f] [-d] [-c]` `sed` `awk [-F]` `tr` `tee` `xargs [-I{}]` `echo [-n] [-e]` `printf` `seq` `nl` `column [-t]` `paste` `cp [-r]` `mv` `rm [-r]` `mkdir` `touch` `diff` `env` `export`
+`pwd` `cd` `ls [-l] [-la]` `cat [-n]` `head [-n N]` `tail [-n N]` `grep [-i] [-v] [-n] [-c] [-E]` `find [-name] [-type]` `wc [-l] [-w] [-c]` `sort [-r] [-n] [-u] [-k N] [-t]` `uniq [-c] [-d]` `cut [-f] [-d] [-c]` `sed` `awk [-F]` `tr` `tee` `xargs [-I{}]` `echo [-n] [-e]` `printf` `seq` `nl` `column [-t]` `paste` `base64` `cp [-r]` `mv` `rm [-r]` `mkdir` `touch` `diff` `env` `export`
 
 ## Architecture
 
