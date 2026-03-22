@@ -4,7 +4,7 @@ mod builtins;
 mod config;
 
 use std::collections::{BTreeMap, HashMap, HashSet, VecDeque};
-use std::net::SocketAddr;
+use std::net::{IpAddr, SocketAddr};
 use std::path::Path;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
@@ -39,6 +39,79 @@ struct Args {
     healthcheck: bool,
 }
 
+/// Per-IP state for connection-level rate limiting.
+struct IpConnectionState {
+    /// Number of currently active TCP connections from this IP.
+    active: usize,
+    /// Timestamps of recent connection attempts (sliding window).
+    recent: VecDeque<Instant>,
+}
+
+/// Tracks per-IP TCP connection counts and connection rate to defend against
+/// resource exhaustion from hostile actors.
+#[derive(Clone)]
+struct ConnectionTracker {
+    state: Arc<tokio::sync::Mutex<HashMap<IpAddr, IpConnectionState>>>,
+    max_concurrent: u32,
+    rate_max: u32,
+    rate_window: Duration,
+}
+
+impl ConnectionTracker {
+    fn new(max_concurrent: u32, rate_max: u32, rate_window: Duration) -> Self {
+        Self {
+            state: Arc::new(tokio::sync::Mutex::new(HashMap::new())),
+            max_concurrent,
+            rate_max,
+            rate_window,
+        }
+    }
+
+    /// Try to admit a new connection from `ip`. Returns `true` if allowed.
+    /// On success, increments the active counter and records the timestamp.
+    async fn try_admit(&self, ip: IpAddr) -> bool {
+        let mut map = self.state.lock().await;
+        let entry = map.entry(ip).or_insert_with(|| IpConnectionState {
+            active: 0,
+            recent: VecDeque::new(),
+        });
+
+        // Concurrent connection limit
+        if entry.active >= self.max_concurrent as usize {
+            return false;
+        }
+
+        // Sliding window rate limit
+        let now = Instant::now();
+        while entry
+            .recent
+            .front()
+            .is_some_and(|t| now.duration_since(*t) > self.rate_window)
+        {
+            entry.recent.pop_front();
+        }
+        if entry.recent.len() >= self.rate_max as usize {
+            return false;
+        }
+
+        entry.active += 1;
+        entry.recent.push_back(now);
+        true
+    }
+
+    /// Release a connection slot for `ip`. Called when a connection ends.
+    async fn release(&self, ip: IpAddr) {
+        let mut map = self.state.lock().await;
+        if let Some(entry) = map.get_mut(&ip) {
+            entry.active = entry.active.saturating_sub(1);
+            // Clean up entries with no active connections and an empty window
+            if entry.active == 0 && entry.recent.is_empty() {
+                map.remove(&ip);
+            }
+        }
+    }
+}
+
 #[derive(Clone)]
 struct AppState {
     cfg: config::ServerConfig,
@@ -46,6 +119,7 @@ struct AppState {
     shell: Arc<ShellEngine>,
     script: Arc<ScriptEngine>,
     admin_secret: Option<AdminSecret>,
+    conn_tracker: ConnectionTracker,
 }
 
 struct ShellState {
@@ -4628,6 +4702,12 @@ impl server::Handler for GameSession {
                         }
                         continue;
                     }
+                    // Cap line buffer to prevent memory exhaustion from hostile input.
+                    // 4 KiB is generous for any single shell command.
+                    const MAX_LINE_BUFFER: usize = 4096;
+                    if self.line_buffer.len() >= MAX_LINE_BUFFER {
+                        continue;
+                    }
                     self.line_buffer.push(b);
                     session.data(channel, CryptoVec::from(vec![b]))?;
                 }
@@ -5186,12 +5266,26 @@ async fn main() -> Result<()> {
     let shell = Arc::new(ShellEngine::with_registry(builtins::default_registry()));
     let script = Arc::new(ScriptEngine::new(ScriptPolicy::default()));
 
+    let conn_tracker = ConnectionTracker::new(
+        cfg.server.max_connections_per_ip,
+        cfg.server.connection_rate_max,
+        Duration::from_secs(cfg.server.connection_rate_window_secs),
+    );
+
+    info!(
+        max_concurrent = cfg.server.max_connections_per_ip,
+        rate_max = cfg.server.connection_rate_max,
+        rate_window_secs = cfg.server.connection_rate_window_secs,
+        "per-IP TCP connection limits active"
+    );
+
     let app = Arc::new(AppState {
         cfg: cfg.clone(),
         world,
         shell,
         script,
         admin_secret,
+        conn_tracker,
     });
 
     let host_key = load_or_generate_host_key(Path::new(&host_key_path))
@@ -5206,14 +5300,21 @@ async fn main() -> Result<()> {
     };
     let server_cfg = Arc::new(server_cfg);
 
-    let mut server = GameServer { app };
+    let mut server = GameServer { app: app.clone() };
     let mut retry_delay = Duration::from_secs(1);
     loop {
         match TcpListener::bind(&cfg.server.listen).await {
             Ok(listener) => {
                 info!(listen = %cfg.server.listen, "starting SSH-Hunt server");
                 retry_delay = Duration::from_secs(1);
-                match server.run_on_socket(server_cfg.clone(), &listener).await {
+                match accept_loop(
+                    &mut server,
+                    server_cfg.clone(),
+                    &listener,
+                    &app.conn_tracker,
+                )
+                .await
+                {
                     Ok(()) => warn!("server loop exited unexpectedly; restarting listener"),
                     Err(err) => error!(error = ?err, "server loop error; restarting listener"),
                 }
@@ -5232,6 +5333,59 @@ async fn main() -> Result<()> {
 
     #[allow(unreachable_code)]
     Ok(())
+}
+
+/// Custom TCP accept loop with per-IP connection limiting.
+///
+/// Replaces `russh::server::Server::run_on_socket` so that hostile IPs can be
+/// rejected at the TCP layer before any SSH handshake resources are spent.
+async fn accept_loop(
+    server: &mut GameServer,
+    config: Arc<russh::server::Config>,
+    listener: &TcpListener,
+    tracker: &ConnectionTracker,
+) -> Result<()> {
+    loop {
+        let (socket, peer_addr) = listener.accept().await.context("TCP accept failed")?;
+
+        let ip = peer_addr.ip();
+
+        if !tracker.try_admit(ip).await {
+            warn!(
+                peer = %peer_addr,
+                "TCP connection rejected: per-IP limit exceeded"
+            );
+            // Drop socket immediately — no SSH handshake, no resources spent.
+            drop(socket);
+            continue;
+        }
+
+        if config.nodelay {
+            if let Err(e) = socket.set_nodelay(true) {
+                warn!("set_nodelay() failed: {e:?}");
+            }
+        }
+
+        let handler = server.new_client(Some(peer_addr));
+        let cfg = config.clone();
+        let release_tracker = tracker.clone();
+
+        tokio::spawn(async move {
+            let session = match russh::server::run_stream(cfg, socket, handler).await {
+                Ok(s) => s,
+                Err(e) => {
+                    warn!(peer = %peer_addr, error = ?e, "SSH connection setup failed");
+                    release_tracker.release(ip).await;
+                    return;
+                }
+            };
+
+            if let Err(e) = session.await {
+                warn!(peer = %peer_addr, error = ?e, "SSH session error");
+            }
+            release_tracker.release(ip).await;
+        });
+    }
 }
 
 #[cfg(test)]
@@ -5375,5 +5529,67 @@ mod tests {
         assert_eq!(mission_track_label("head-tail", false, false), "intermed");
         assert_eq!(mission_track_label("deep-pipeline", false, false), "expert");
         assert_eq!(mission_track_label("decrypt-wren", false, false), "expert");
+    }
+
+    #[tokio::test]
+    async fn connection_tracker_enforces_concurrent_limit() {
+        let tracker = ConnectionTracker::new(2, 100, Duration::from_secs(60));
+        let ip: IpAddr = "10.0.0.1".parse().unwrap();
+
+        assert!(tracker.try_admit(ip).await);
+        assert!(tracker.try_admit(ip).await);
+        // Third concurrent connection should be rejected
+        assert!(!tracker.try_admit(ip).await);
+
+        // Release one, then the next should be admitted
+        tracker.release(ip).await;
+        assert!(tracker.try_admit(ip).await);
+    }
+
+    #[tokio::test]
+    async fn connection_tracker_enforces_rate_limit() {
+        let tracker = ConnectionTracker::new(100, 3, Duration::from_secs(60));
+        let ip: IpAddr = "10.0.0.2".parse().unwrap();
+
+        assert!(tracker.try_admit(ip).await);
+        tracker.release(ip).await;
+        assert!(tracker.try_admit(ip).await);
+        tracker.release(ip).await;
+        assert!(tracker.try_admit(ip).await);
+        tracker.release(ip).await;
+        // Fourth within the window should be rejected by rate limit
+        assert!(!tracker.try_admit(ip).await);
+    }
+
+    #[tokio::test]
+    async fn connection_tracker_isolates_ips() {
+        let tracker = ConnectionTracker::new(1, 100, Duration::from_secs(60));
+        let ip_a: IpAddr = "10.0.0.3".parse().unwrap();
+        let ip_b: IpAddr = "10.0.0.4".parse().unwrap();
+
+        assert!(tracker.try_admit(ip_a).await);
+        // Different IP should not be affected
+        assert!(tracker.try_admit(ip_b).await);
+        // Same IP is at limit
+        assert!(!tracker.try_admit(ip_a).await);
+        assert!(!tracker.try_admit(ip_b).await);
+    }
+
+    #[tokio::test]
+    async fn connection_tracker_cleans_up_idle_entries() {
+        let tracker = ConnectionTracker::new(10, 100, Duration::from_secs(0));
+        let ip: IpAddr = "10.0.0.5".parse().unwrap();
+
+        assert!(tracker.try_admit(ip).await);
+        tracker.release(ip).await;
+
+        // After release with expired window, the entry should be cleaned up.
+        // Use a zero-second window so all timestamps are already expired.
+        // Force a new admit to trigger the cleanup path.
+        assert!(tracker.try_admit(ip).await);
+
+        let map = tracker.state.lock().await;
+        assert!(map.contains_key(&ip));
+        assert_eq!(map[&ip].active, 1);
     }
 }

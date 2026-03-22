@@ -174,7 +174,10 @@ pub async fn run_marketplace_script(
 }
 
 pub async fn parse_and_grep(engine: &ScriptEngine, input: &str, needle: &str) -> Result<String> {
-    let script = format!(r#"let x = grep(read_virtual(\"/tmp/input\"), \"{needle}\"); x"#);
+    // Escape needle to prevent Rhai script injection from attacker-controlled input.
+    // Replace backslashes first, then double-quotes, to safely embed in a Rhai string literal.
+    let escaped_needle = needle.replace('\\', "\\\\").replace('"', "\\\"");
+    let script = format!(r#"let x = grep(read_virtual(\"/tmp/input\"), \"{escaped_needle}\"); x"#);
     let mut files = BTreeMap::new();
     files.insert("/tmp/input".to_owned(), input.to_owned());
     let result = engine

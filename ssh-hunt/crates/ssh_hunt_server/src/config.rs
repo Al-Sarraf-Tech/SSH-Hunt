@@ -19,6 +19,27 @@ pub struct ServerSection {
     pub listen: String,
     pub rate_limit_per_second: u32,
     pub burst: u32,
+    /// Maximum simultaneous TCP connections allowed from a single IP.
+    #[serde(default = "default_max_connections_per_ip")]
+    pub max_connections_per_ip: u32,
+    /// Maximum new TCP connections allowed from a single IP within the rate window.
+    #[serde(default = "default_connection_rate_max")]
+    pub connection_rate_max: u32,
+    /// Sliding window duration (in seconds) for the connection rate limiter.
+    #[serde(default = "default_connection_rate_window_secs")]
+    pub connection_rate_window_secs: u64,
+}
+
+fn default_max_connections_per_ip() -> u32 {
+    10
+}
+
+fn default_connection_rate_max() -> u32 {
+    5
+}
+
+fn default_connection_rate_window_secs() -> u64 {
+    10
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -45,6 +66,9 @@ impl Default for ServerConfig {
                 listen: "0.0.0.0:22222".to_owned(),
                 rate_limit_per_second: 8,
                 burst: 20,
+                max_connections_per_ip: 10,
+                connection_rate_max: 5,
+                connection_rate_window_secs: 10,
             },
             ui: UiSection {
                 default_mode: "training".to_owned(),

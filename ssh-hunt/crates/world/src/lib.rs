@@ -1639,7 +1639,10 @@ impl WorldService {
         };
 
         // Now mutate the duel
-        let duel = guard.npc_duels.get_mut(&duel_id).unwrap();
+        let duel = guard
+            .npc_duels
+            .get_mut(&duel_id)
+            .ok_or_else(|| anyhow!("duel state disappeared"))?;
         let mut narrative = String::new();
         match action {
             CombatAction::Defend => {
@@ -1679,14 +1682,20 @@ impl WorldService {
 
         // Check if NPC is defeated
         if npc_hp_now <= 0 {
-            let duel = guard.npc_duels.remove(&duel_id).unwrap();
+            let duel = guard
+                .npc_duels
+                .remove(&duel_id)
+                .ok_or_else(|| anyhow!("duel state disappeared during removal"))?;
             narrative.push_str(&format!(
                 "{} systems compromised. Hack complete!\n",
                 callsign
             ));
 
             // Collect reward data
-            let npc = guard.npc_combat.get(&callsign).unwrap();
+            let npc = guard
+                .npc_combat
+                .get(&callsign)
+                .ok_or_else(|| anyhow!("NPC combat state missing for {}", callsign))?;
             let reward_w = npc.reward_wallet;
             let reward_r = npc.reward_rep;
             let achievement = npc.reward_achievement.clone();
@@ -1717,15 +1726,19 @@ impl WorldService {
             });
 
             if replaceable {
-                let npc = guard.npc_combat.get_mut(&callsign).unwrap();
+                let npc = guard
+                    .npc_combat
+                    .get_mut(&callsign)
+                    .ok_or_else(|| anyhow!("NPC combat state missing for {}", callsign))?;
                 npc.times_defeated += 1;
                 npc.generation += 1;
                 let gen = npc.generation as usize;
                 let new_name = npc
                     .name_pool
-                    .get(gen.min(npc.name_pool.len() - 1))
-                    .unwrap_or(npc.name_pool.last().unwrap())
-                    .to_string();
+                    .get(gen.min(npc.name_pool.len().saturating_sub(1)))
+                    .or_else(|| npc.name_pool.last())
+                    .map(|s| s.to_string())
+                    .unwrap_or_else(|| callsign.clone());
                 let old_name = std::mem::replace(&mut npc.current_name, new_name.clone());
                 let role_clone = npc.role.clone();
                 let gen_num = npc.generation;
@@ -1757,7 +1770,10 @@ impl WorldService {
 
         // NPC auto-response
         let roll: f32 = rng().random_range(0.0..1.0);
-        let duel = guard.npc_duels.get_mut(&duel_id).unwrap();
+        let duel = guard
+            .npc_duels
+            .get_mut(&duel_id)
+            .ok_or_else(|| anyhow!("duel state disappeared during NPC response"))?;
         if roll < npc_defend_chance {
             duel.npc_defending = true;
             narrative.push_str(&format!(
@@ -1837,7 +1853,10 @@ impl WorldService {
             (npc.shell_answer.clone(), npc.shell_bonus_dmg)
         };
         if output.contains(&answer) {
-            let duel = guard.npc_duels.get_mut(&duel_id).unwrap();
+            let duel = guard
+                .npc_duels
+                .get_mut(&duel_id)
+                .ok_or_else(|| anyhow!("duel state disappeared during shell challenge"))?;
             duel.shell_bonus_ready = true;
             Ok(format!(
                 "Shell challenge solved! +{} bonus damage on next attack.\n",
