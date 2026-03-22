@@ -125,8 +125,9 @@ fn run_inner(
     });
 
     let mut scope = Scope::new();
+    let start = std::time::Instant::now();
     let eval = engine.eval_with_scope::<Dynamic>(&mut scope, &source);
-    let elapsed_ms = 0u64;
+    let elapsed_ms = start.elapsed().as_millis() as u64;
 
     match eval {
         Ok(value) => {
@@ -144,7 +145,7 @@ fn run_inner(
             Ok(ScriptRunResult {
                 output: out,
                 exit_code: 0,
-                consumed_ops: policy.max_operations,
+                consumed_ops: 0,
                 elapsed_ms,
             })
         }

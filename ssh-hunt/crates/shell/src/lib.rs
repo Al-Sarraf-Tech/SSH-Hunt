@@ -277,7 +277,7 @@ fn parse_line(input: &str, env: &HashMap<String, String>) -> Result<ParsedLine, 
                     return Err(ShellError::Parse("unexpected pipe".to_owned()));
                 }
             }
-            "&&" | "||" => {
+            "&&" | "||" | ";" => {
                 if let Some(command) = flush_command(&mut cur_words, &mut stdin, &mut stdout)? {
                     cur_pipeline.push(command);
                 }
@@ -291,10 +291,10 @@ fn parse_line(input: &str, env: &HashMap<String, String>) -> Result<ParsedLine, 
                     },
                 });
                 cur_pipeline.clear();
-                current_op = if tokens[i] == "&&" {
-                    ChainOp::And
-                } else {
-                    ChainOp::Or
+                current_op = match tokens[i].as_str() {
+                    "&&" => ChainOp::And,
+                    "||" => ChainOp::Or,
+                    _ => ChainOp::Always,
                 };
             }
             ">" | ">>" | "<" => {
@@ -368,7 +368,7 @@ fn tokenize(input: &str, env: &HashMap<String, String>) -> Result<Vec<String>, S
                     cur.clear();
                 }
             }
-            '|' | '&' | '>' | '<' if !single_quote && !double_quote => {
+            '|' | '&' | '>' | '<' | ';' if !single_quote && !double_quote => {
                 if !cur.is_empty() {
                     tokens.push(cur.clone());
                     cur.clear();

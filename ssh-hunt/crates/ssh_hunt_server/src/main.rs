@@ -2603,7 +2603,7 @@ impl GameSession {
                         ))
                     }
                     Some(n) if n.parse::<u8>().is_ok() => {
-                        let target = n.parse::<u8>().unwrap();
+                        let target = n.parse::<u8>().unwrap_or(0);
                         if !(1..=6).contains(&target) {
                             return Ok((
                                 "Tutorial has steps 1-6. Usage: tutorial <1-6>\n".to_owned(),
