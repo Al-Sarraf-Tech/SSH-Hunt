@@ -65,5 +65,5 @@ Pipelines run:
 - vuln scans (`trivy`, `osv-scanner`),
 - CodeQL static analysis for Rust security paths,
 - forbidden-API guard (fails on `std::process::Command` usage),
-- SBOM + signed image attestations,
+- SBOM + cosign-signed container images,
 - weekly deep sweep and automated dependency update PRs.

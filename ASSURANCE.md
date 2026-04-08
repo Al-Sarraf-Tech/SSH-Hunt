@@ -138,8 +138,8 @@ Verification:
 ```bash
 cosign verify \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-  --certificate-identity-regexp 'github.com/jalsarraf0/SSH-Hunt' \
-  ghcr.io/jalsarraf0/ssh-hunt/ssh-hunt:main
+  --certificate-identity-regexp 'github.com/Al-Sarraf-Tech/SSH-Hunt' \
+  ghcr.io/al-sarraf-tech/ssh-hunt/ssh-hunt:main
 ```
 
 ### SBOM Generation
@@ -151,12 +151,6 @@ Two complementary SBOM formats are produced:
 - **CycloneDX** (via `cargo-cyclonedx`): generated from Cargo workspace source in the
   SBOM workflow. One SBOM per workspace crate, validated to ensure all key crates
   (`ssh_hunt_server`, `world`, `shell`, `vfs`) are covered. Retained for 90 days.
-
-### Build Provenance Attestation
-
-`actions/attest-build-provenance` generates SLSA-compatible provenance attestations for
-every container image build. Attestations are pushed to the GHCR registry alongside the
-image, providing an auditable record of what was built, when, and by which workflow run.
 
 ### Locked Dependencies
 
@@ -215,7 +209,7 @@ Every workflow declares explicit `permissions` blocks scoped to the minimum requ
 - CI: `contents: read`
 - Security: `contents: read`, `security-events: write`
 - CodeQL: `contents: read`, `actions: read`, `security-events: write`
-- Docker: `contents: read`, `packages: write`, `id-token: write`, `attestations: write`
+- Docker: `contents: read`, `packages: write`, `id-token: write`
 
 ### Runner Selection
 
@@ -288,7 +282,7 @@ make doctor
 | Stale dependencies | Weekly deep sweep + automated update PR |
 | Host command injection | Forbidden API grep on every PR |
 | Intrusion guard removal | Sentinel function verification on every PR |
-| Tampered container images | Cosign keyless signing + provenance attestation |
+| Tampered container images | Cosign keyless signing |
 | Unknown dependency contents | Dual-format SBOM (SPDX + CycloneDX) per release |
 | Dependency version drift | `--locked` flag on all cargo commands in CI |
 | Wasted CI resources | Concurrency groups with cancel-in-progress |

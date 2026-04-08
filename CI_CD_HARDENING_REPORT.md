@@ -1,6 +1,6 @@
 # CI/CD Hardening Report -- SSH-Hunt
 
-**Repository:** `jalsarraf0/SSH-Hunt`
+**Repository:** `Al-Sarraf-Tech/SSH-Hunt`
 **Date:** 2026-03-14
 **Branch:** `main`
 
@@ -16,7 +16,7 @@ SSH-Hunt had a mature, comprehensive CI/CD pipeline already in place with six wo
 | Security (`security.yml`) | Fully operational | cargo-audit, cargo-deny, gitleaks, Trivy, OSV-Scanner, intrusion guards |
 | CodeQL (`codeql.yml`) | Fully operational | Rust semantic analysis, weekly schedule + PR triggers |
 | Deep Security Sweep (`deep-security-sweep.yml`) | Fully operational | Weekly full-depth scan + automated dependency update PR |
-| Docker Build and Publish (`docker.yml`) | Fully operational | GHCR push, cosign signing, SPDX SBOM, build provenance attestation |
+| Docker Build and Publish (`docker.yml`) | Fully operational | GHCR push, cosign signing, SPDX SBOM |
 | SBOM (`sbom.yml`) | Fully operational | CycloneDX source-level SBOMs, per-crate validation |
 
 ### Security Scanning Tools
@@ -33,7 +33,6 @@ SSH-Hunt had a mature, comprehensive CI/CD pipeline already in place with six wo
 - Cosign keyless image signing (Sigstore OIDC)
 - SPDX SBOM from container image (anchore/sbom-action)
 - CycloneDX SBOMs from Cargo source (cargo-cyclonedx)
-- Build provenance attestation (actions/attest-build-provenance, SLSA-compatible)
 - Locked dependencies (`--locked` on all cargo commands)
 
 ### Quality Controls
@@ -64,7 +63,7 @@ badge for the SBOM workflow. The following line should be added after the Docker
 when the current README working changes are committed:
 
 ```markdown
-[![SBOM](https://github.com/jalsarraf0/SSH-Hunt/actions/workflows/sbom.yml/badge.svg)](https://github.com/jalsarraf0/SSH-Hunt/actions/workflows/sbom.yml)
+[![SBOM](https://github.com/Al-Sarraf-Tech/SSH-Hunt/actions/workflows/sbom.yml/badge.svg)](https://github.com/Al-Sarraf-Tech/SSH-Hunt/actions/workflows/sbom.yml)
 ```
 
 This was deferred because README.md has unrelated development changes in progress.

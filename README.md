@@ -56,12 +56,13 @@ The story spans two arcs: the Ghost Rail Conspiracy (Chapters 1-7) and the Cryst
 ## Quick Start
 
 1. Install Docker and Docker Compose.
-2. Clone and start:
+2. Clone the repository and start:
 
 ```bash
-cd /docker/ssh-hunt
-./scripts/install.sh
-cp .env.example .env
+git clone https://github.com/Al-Sarraf-Tech/SSH-Hunt.git
+cd SSH-Hunt
+./scripts/install.sh   # creates volume directories and default config files
+cp .env.example .env   # edit .env to set secrets before proceeding
 make up
 ```
 
@@ -381,7 +382,7 @@ Runtime secrets (not committed): `admin.yaml`, `hidden_ops.yaml`, `ssh_host_ed25
 - Read `docs/GAMEPLAY.md`, `docs/SECURITY.md`, `docs/DEPLOYMENT.md`, and `docs/SELF_HOSTED_RUNNER.md`
 - Follow `CODE_OF_CONDUCT.md`
 - Run `make test` before opening a PR
-- CI gate: `cargo fmt --all --check && cargo clippy --workspace --all-targets -- -D warnings && cargo test --workspace`
+- CI gate: `cargo fmt --all --check && cargo clippy --all-targets --all-features -- -D warnings && cargo test --workspace --all-features`
 
 ## License
 
