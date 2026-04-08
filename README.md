@@ -4,7 +4,7 @@
 
 ### **[The Ghost Rail Conspiracy — Full Story & Lore](STORY.md)**
 
-> CI runs on self-hosted runners managed by [haskell-ci-orchestrator](https://github.com/jalsarraf0/haskell-ci-orchestrator) with build attestation. Lint, test, security, SBOM, Docker, and release jobs are unified in a single pipeline.
+> CI runs on self-hosted runners governed by the [Haskell Orchestrator](https://github.com/Al-Sarraf-Tech/Haskell-Orchestrator). Lint, test, security, SBOM, Docker, and release jobs are unified in a single pipeline.
 
 SSH-Hunt is a publicly playable cyberpunk SSH game and terminal learning MMO. Players connect via any SSH client, learn real shell commands through story-driven missions, hack NPCs, and unravel two conspiracies — the Ghost Rail Conspiracy and the Crystal Array expansion — in a living world where defeated characters are replaced by harder successors.
 
@@ -295,6 +295,12 @@ Hard defensive guarantees:
 - Breakout/probing attempts trigger immediate **permanent zero + disconnect**
 - `#![forbid(unsafe_code)]` on all gameplay crates
 
+Connection-level hardening (added in recent release):
+- **Per-IP rate limiting**: Custom TCP accept loop with `ConnectionTracker` enforces per-IP concurrent connection limits and a sliding-window connection rate limit. Excess connections are rejected before the SSH handshake, so hostile scanners consume no server resources beyond the TCP close.
+- **Rhai script injection fix**: The grep Rhai script escapes the needle (`\` and `"`) before constructing the Rhai expression, preventing attacker-controlled mission input from injecting arbitrary script.
+- **Combat state hardening**: All NPC duel state lookups replace `unwrap()` with `ok_or_else()`, eliminating panic paths reachable from hostile combat commands.
+- **Line buffer cap**: Input line buffer is capped at 4 KiB per connection to prevent memory exhaustion from clients that never send a newline.
+
 ## Deployment and Ops
 
 ```bash
@@ -314,18 +320,21 @@ make backup                 # backup player data
 Cloudflare Tunnel target: `ssh://localhost:24444`
 If inside Docker network: `ssh://ssh-hunt:22222`
 
-## CI/CD and Security Pipeline
+## CI/CD & Orchestration
 
-All CI runs on **self-hosted runners** managed by [haskell-ci-orchestrator](https://github.com/jalsarraf0/haskell-ci-orchestrator). The unified pipeline (`.github/workflows/ci.yml`) includes:
+This project is governed by the [Haskell Orchestrator](https://github.com/Al-Sarraf-Tech/Haskell-Orchestrator) — a Haskell-based multi-agent CI/CD governance framework for pre-push validation, code quality enforcement, and release management across the Al-Sarraf-Tech organization.
+
+All CI runs on **self-hosted runners** under Haskell Orchestrator governance. The unified pipeline (`.github/workflows/ci.yml`) includes:
 
 | Job | What it does | Trigger |
 |-----|-------------|---------|
+| **Governance** | `repo-guard` verifies repository ownership before all jobs run | Every push/PR |
 | **Lint** | `cargo fmt --check` + `cargo clippy -D warnings` | Every push/PR |
 | **Test** | `cargo test --workspace` (158+ tests) | Every push/PR |
 | **Security** | gitleaks, cargo audit, cargo deny, trivy, CodeQL, osv-scanner | Every push/PR |
 | **SBOM** | Syft SPDX + CycloneDX generation | main branch |
 | **Docker** | Build + push game server image | main + tags |
-| **Release** | SHA256 checksums, build provenance attestation, GitHub Release | Tags only |
+| **Release** | SHA256 checksums, GitHub Release | Tags only |
 
 Pipeline features:
 - Concurrency groups cancel in-progress runs on same ref
