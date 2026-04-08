@@ -31,3 +31,4 @@ uuid.workspace = true
 vfs = { path = "../vfs" }
 world = { path = "../world" }
 ssh_hunt_scripts = { path = "../scripts" }
+bytes.workspace = true

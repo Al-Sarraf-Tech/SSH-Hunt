@@ -14,7 +14,7 @@ use clap::Parser;
 use protocol::{CombatStance, Mode};
 use russh::keys::ssh_key::rand_core::OsRng;
 use russh::server::{self, Msg, Server as _};
-use russh::{Channel, ChannelId, CryptoVec};
+use russh::{Channel, ChannelId};
 use shell::{ExecutionContext, ShellEngine};
 use sqlx::PgPool;
 use ssh_hunt_scripts::{ScriptContext, ScriptEngine, ScriptPolicy};
@@ -4476,7 +4476,7 @@ impl GameSession {
         channel: ChannelId,
         text: &str,
     ) -> Result<(), anyhow::Error> {
-        session.data(channel, CryptoVec::from(self.render_for_client(text)))?;
+        session.data(channel, bytes::Bytes::from(self.render_for_client(text)))?;
         Ok(())
     }
 
@@ -4685,7 +4685,7 @@ impl server::Handler for GameSession {
                     self.escape_sequence_remaining = 0;
                     if !self.line_buffer.is_empty() {
                         self.line_buffer.pop();
-                        session.data(channel, CryptoVec::from("\x08 \x08"))?;
+                        session.data(channel, bytes::Bytes::from_static(b"\x08 \x08"))?;
                     }
                 }
                 0x1b => {
@@ -4709,7 +4709,7 @@ impl server::Handler for GameSession {
                         continue;
                     }
                     self.line_buffer.push(b);
-                    session.data(channel, CryptoVec::from(vec![b]))?;
+                    session.data(channel, bytes::Bytes::from(vec![b]))?;
                 }
             }
         }
