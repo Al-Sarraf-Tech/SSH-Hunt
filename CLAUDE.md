@@ -4,6 +4,25 @@
 
 SSH-Hunt is a Rust workspace SSH honeypot disguised as a puzzle/hacking game. Players SSH in on port 24444 and explore a simulated Linux environment with hidden challenges.
 
+## Build
+
+```bash
+cd ssh-hunt && cargo build --release
+docker compose up --build -d          # full Docker stack
+```
+
+## Test
+
+```bash
+cd ssh-hunt && cargo test --workspace --all-features
+```
+
+## Lint
+
+```bash
+cd ssh-hunt && cargo fmt --check && cargo clippy --all-targets --all-features -- -D warnings
+```
+
 ## Build & Test
 
 ```bash
