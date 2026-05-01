@@ -13,7 +13,7 @@ struct Cli {
     command: Commands,
 }
 
-#[derive(Debug, Subcommand)]
+#[derive(Debug, Subcommand, PartialEq, Eq)]
 enum Commands {
     Migrate,
     Seed,
@@ -138,4 +138,97 @@ async fn stats(pool: &PgPool) -> Result<()> {
 
     println!("players={players} open_auctions={auctions} chat_messages={chats}");
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use clap::CommandFactory;
+
+    #[test]
+    fn cli_definition_is_well_formed() {
+        // Trips at compile/parse time if clap derive macros are misused.
+        Cli::command().debug_assert();
+    }
+
+    #[test]
+    fn parses_migrate_subcommand() {
+        let cli = Cli::try_parse_from(["admin", "migrate"]).expect("parse migrate");
+        assert_eq!(cli.command, Commands::Migrate);
+    }
+
+    #[test]
+    fn parses_seed_subcommand() {
+        let cli = Cli::try_parse_from(["admin", "seed"]).expect("parse seed");
+        assert_eq!(cli.command, Commands::Seed);
+    }
+
+    #[test]
+    fn parses_stats_subcommand() {
+        let cli = Cli::try_parse_from(["admin", "stats"]).expect("parse stats");
+        assert_eq!(cli.command, Commands::Stats);
+    }
+
+    #[test]
+    fn parses_ban_with_username_arg() {
+        let cli = Cli::try_parse_from(["admin", "ban", "alice"]).expect("parse ban alice");
+        assert_eq!(
+            cli.command,
+            Commands::Ban {
+                username: "alice".to_string()
+            }
+        );
+    }
+
+    #[test]
+    fn parses_broadcast_with_message_arg() {
+        let cli = Cli::try_parse_from(["admin", "broadcast", "world reset in 5 minutes"])
+            .expect("parse broadcast");
+        assert_eq!(
+            cli.command,
+            Commands::Broadcast {
+                message: "world reset in 5 minutes".to_string()
+            }
+        );
+    }
+
+    #[test]
+    fn rejects_missing_subcommand() {
+        let err = Cli::try_parse_from(["admin"]).unwrap_err();
+        // clap exits with help-on-missing rather than MissingSubcommand by default.
+        assert_eq!(
+            err.kind(),
+            clap::error::ErrorKind::DisplayHelpOnMissingArgumentOrSubcommand
+        );
+    }
+
+    #[test]
+    fn rejects_unknown_subcommand() {
+        let err = Cli::try_parse_from(["admin", "nuke"]).unwrap_err();
+        assert_eq!(err.kind(), clap::error::ErrorKind::InvalidSubcommand);
+    }
+
+    #[test]
+    fn rejects_ban_without_username() {
+        let err = Cli::try_parse_from(["admin", "ban"]).unwrap_err();
+        assert_eq!(err.kind(), clap::error::ErrorKind::MissingRequiredArgument);
+    }
+
+    #[test]
+    fn rejects_broadcast_without_message() {
+        let err = Cli::try_parse_from(["admin", "broadcast"]).unwrap_err();
+        assert_eq!(err.kind(), clap::error::ErrorKind::MissingRequiredArgument);
+    }
+
+    #[test]
+    fn ban_extra_positional_args_rejected() {
+        let err = Cli::try_parse_from(["admin", "ban", "alice", "extra"]).unwrap_err();
+        assert_eq!(err.kind(), clap::error::ErrorKind::UnknownArgument);
+    }
+
+    #[test]
+    fn help_flag_short_circuits() {
+        let err = Cli::try_parse_from(["admin", "--help"]).unwrap_err();
+        assert_eq!(err.kind(), clap::error::ErrorKind::DisplayHelp);
+    }
 }
