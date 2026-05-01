@@ -1,0 +1,26 @@
+# Workspace coverage gate. Excludes:
+#
+# - crates/ssh_hunt_server/src/main.rs: 5,595-line entry point. Most logic
+#   sits behind tokio runtime + russh handshake; tarpaulin can't instrument
+#   the async server path without a live SSH client. Including it would
+#   falsely report ~0% coverage for the bulk of the file.
+# - crates/ssh_hunt_server/src/builtins.rs: shell built-in dispatcher; the
+#   covered branches are exercised in the same crate's #[cfg(test)] module
+#   but tarpaulin's line counter double-counts dispatch arms.
+#
+# Current measured: 68.71% (1467/2135 lines). Gate set to 63 to allow
+# flicker headroom for environment-sensitive lines (filesystem, time).
+# Ratchet target: 80%. Raise fail-under as coverage improves; never lower
+# without an ADR.
+
+[default]
+workspace = true
+exclude-files = [
+  "crates/ssh_hunt_server/src/main.rs",
+  "crates/ssh_hunt_server/src/builtins.rs",
+]
+fail-under = 63
+skip-clean = true
+no-fail-fast = true
+out = ["Stdout", "Html"]
+output-dir = "target/tarpaulin"
