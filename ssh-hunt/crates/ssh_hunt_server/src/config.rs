@@ -90,7 +90,7 @@ pub fn load_config(path: &str) -> Result<ServerConfig> {
         return Ok(ServerConfig::default());
     }
     let raw = std::fs::read_to_string(path).context("failed to read config.yaml")?;
-    let cfg: ServerConfig = serde_yaml::from_str(&raw).context("invalid config.yaml")?;
+    let cfg: ServerConfig = serde_yml::from_str(&raw).context("invalid config.yaml")?;
     Ok(cfg)
 }
 
@@ -99,7 +99,7 @@ pub fn load_admin_secret(path: &str) -> Result<Option<AdminSecret>> {
         return Ok(None);
     }
     let raw = std::fs::read_to_string(path).context("failed to read admin secret")?;
-    let cfg: AdminSecret = serde_yaml::from_str(&raw).context("invalid admin secret yaml")?;
+    let cfg: AdminSecret = serde_yml::from_str(&raw).context("invalid admin secret yaml")?;
     Ok(Some(cfg))
 }
 
@@ -118,7 +118,7 @@ pub fn load_hidden_ops(path: &str) -> Result<HiddenOpsConfig> {
         telegram: Option<TelegramRelayConfig>,
     }
 
-    let parsed: RawHiddenOps = serde_yaml::from_str(&raw).context("invalid hidden ops yaml")?;
+    let parsed: RawHiddenOps = serde_yml::from_str(&raw).context("invalid hidden ops yaml")?;
     Ok(HiddenOpsConfig {
         secret_mission: parsed.secret_mission,
         telegram: parsed.telegram,
