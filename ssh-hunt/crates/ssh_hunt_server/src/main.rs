@@ -5220,17 +5220,55 @@ fn load_or_generate_host_key(path: &Path) -> Result<russh::keys::PrivateKey> {
     }
 }
 
+/// Initialize tracing. Returns an optional `WorkerGuard` that must be held
+/// for the lifetime of the program to flush async file writes on shutdown.
+///
+/// Behavior:
+///   * If `LOG_DIR` is set and writable, install a JSON formatter that writes
+///     daily-rolling files at `<LOG_DIR>/ssh-hunt-server.log.YYYY-MM-DD`.
+///   * Otherwise (or if file setup fails), fall back to a stderr formatter
+///     so the binary still runs unattended without a log directory.
+///   * Filter precedence: `RUST_LOG` env var > built-in default
+///     (`info,ssh_hunt_server=debug`).
+fn init_tracing() -> Option<tracing_appender::non_blocking::WorkerGuard> {
+    use tracing_subscriber::{prelude::*, EnvFilter};
+
+    let env_filter = || {
+        EnvFilter::try_from_default_env().unwrap_or_else(|_| "info,ssh_hunt_server=debug".into())
+    };
+
+    let log_dir = std::env::var("LOG_DIR").ok();
+    if let Some(dir) = log_dir {
+        if let Err(err) = std::fs::create_dir_all(&dir) {
+            // Fail-open: log dir unwritable, fall through to stderr.
+            eprintln!("warn: LOG_DIR={dir} unwritable ({err}); using stderr logging");
+        } else {
+            let file_appender = tracing_appender::rolling::daily(&dir, "ssh-hunt-server.log");
+            let (non_blocking, guard) = tracing_appender::non_blocking(file_appender);
+            let json_layer = tracing_subscriber::fmt::layer()
+                .with_writer(non_blocking)
+                .with_target(false)
+                .json();
+            tracing_subscriber::registry()
+                .with(env_filter())
+                .with(json_layer)
+                .init();
+            return Some(guard);
+        }
+    }
+
+    tracing_subscriber::fmt()
+        .with_env_filter(env_filter())
+        .with_target(false)
+        .init();
+    None
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = Args::parse();
 
-    tracing_subscriber::fmt()
-        .with_env_filter(
-            tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "info,ssh_hunt_server=debug".into()),
-        )
-        .with_target(false)
-        .init();
+    let _tracing_guard = init_tracing();
 
     let config_path =
         std::env::var("GAME_CONFIG_PATH").unwrap_or_else(|_| "/data/config.yaml".to_owned());
